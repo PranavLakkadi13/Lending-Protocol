@@ -9,3 +9,9 @@
 2) Hermes is like the communication layer and the main middleware where the interchain funds are stored and managed? ✅
 
 
+
+# Missing links or issues in docs or networks:
+1) The link to the contract state Sender in the dojima network/contracts/InboundStateSender/ link isnt working 
+2) need more clarity on the liquidity part of the dojima like is it 
+
+
