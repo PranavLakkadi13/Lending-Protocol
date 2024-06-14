@@ -4,7 +4,13 @@
 
 
 # Core DApp Logic Or MindMap
-
+--> Factory to keep track of deifferent asset pools (similar to uniswap);
+--> The core logic logic -> 
+    i) User can deposit the asset 
+    ii) user can withdraw the asset (with interest)
+    iii) take flashloan 
+    iv) user can borrow asset with a fee and compulsory collateral 
+    v) user can liquidate the user who collateral value is less than the limit 
 
 
 
