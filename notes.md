@@ -3,6 +3,10 @@
 
 
 
+# Core DApp Logic Or MindMap
+
+
+
 
 # Questions:
 1) Is Dojima completely independent of Hermes? or does heremes manage the validators of dojima as well? ✅

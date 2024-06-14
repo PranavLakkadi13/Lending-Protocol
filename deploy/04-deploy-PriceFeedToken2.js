@@ -1,22 +1,25 @@
 const { ethers, network } = require("hardhat");
+const { Token2Args } = require("../helper-hardhat-config");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments;
   const { deployer } = await getNamedAccounts();
-  let token2;
+  let PriceFeedToken2;
 
   log("--------------------------------------------------");
-  log(`2. Deploying Token2 ..................... `);
-  token2 = await deploy("Token2", {
+  log(`4. Deploying PriceFeedToken2 Contract ..................... `);
+  PriceFeedToken2 = await deploy("PriceFeedToken2", {
     from: deployer,
-    args: [],
+    args: [Token2Args[0], Token2Args[1]],
     log: true,
     waitConfirmations: network.config.blockConfirmations || 1,
   });
 
   log("--------------------------------------------------");
-  log("Token2 deployed at: " + (await token2.address));
+  log(
+    "PriceFeedToken2 Contract deployed at: " + (await PriceFeedToken2.address)
+  );
   log("--------------------------------------------------");
 };
 
-module.exports.tags = ["Token2"];
+module.exports.tags = ["PriceFeedToken2"];
