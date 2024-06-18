@@ -5,8 +5,6 @@ import { LendingPoolCore } from "./CoreLogic.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Router } from "./Router.sol";
 
-import "hardhat/console.sol";
-
 contract Factory is Ownable {
 
     error Factory__PoolExists();
