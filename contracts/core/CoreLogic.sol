@@ -45,13 +45,15 @@ contract LendingPoolCore {
     // core logic ////////////////////
     //////////////////////////////////
 
-    function depositLiquidityAndMintTokens(address depositor, uint256 amount) external onlyRouter returns (bool) {
+    function depositLiquidityAndMintTokens(address depositor, uint256 amount) external onlyRouter {
         SafeERC20.safeTransferFrom(i_underlyingAsset, depositor, address(this), amount);
         unchecked {
             i_userDeposits[depositor] += amount;
         }
-        i_lendingToken.mint(depositor, amount);
-        return true;
+        bool postmint = i_lendingToken.mint(depositor, amount);
+        if (!postmint) {
+            revert("Minting failed");
+        }
     }
 
     //////////////////////////////////
@@ -59,7 +61,8 @@ contract LendingPoolCore {
     //////////////////////////////////
 
 
-    function getBorrowableAmountBasedOnAmount(address user, uint collateral) external view returns (uint value) {
+    function getBorrowableAmountBasedOnUSDAmount(address user, uint collateralInUSD) external view returns (uint value) {
+        uint8 temp = 18 - i_priceFeed.decimals();
         
     }
 
