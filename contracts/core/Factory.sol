@@ -53,4 +53,8 @@ contract Factory is Ownable {
     function getPoolAddress(address underlyingToken) external view returns (address) {
         return getPool[underlyingToken];
     }
+
+    function getRouter() external view returns (address) {
+        return s_Router;
+    }
 }

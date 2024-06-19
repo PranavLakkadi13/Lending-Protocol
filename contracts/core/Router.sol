@@ -26,10 +26,15 @@ contract Router is Ownable {
 
     Factory private immutable i_factory;
     mapping(address => address) private s_priceFeeds;
+    LendTokens private immutable i_lendTokens;
 
-    constructor (address factory, address[2] memory tokenAddress, address[2] memory priceFeeds) 
+    constructor (address factory, address[2] memory tokenAddress, address[2] memory priceFeeds, address lendToken) 
     Ownable (msg.sender) {
+        if (factory == address(0) || lendToken == address(0)) {
+            revert Router__ZeroAddress();
+        }
         i_factory = Factory(factory);
+        i_lendTokens = LendTokens(lendToken);
         for (uint i = 0; i < 2; i++) {
             if (tokenAddress[i] == address(0) || priceFeeds[i] == address(0)) {
                 revert Router__ZeroAddress();
@@ -62,7 +67,19 @@ contract Router is Ownable {
             pool = i_factory.createPool(tokenToDeposit, s_priceFeeds[tokenToDeposit]);
         }
         LendingPoolCore(pool).depositLiquidityAndMintTokens(depositor, amount);
+        mintLendTokens(depositor, amount);
     }
 
+    //////////////////////////////////
+    //// LEND Tokens Manager /////////
+    //////////////////////////////////
+
+    function mintLendTokens(address account, uint256 amount) internal {
+        i_lendTokens.mint(account, amount);
+    }
+
+    function burnLendTokens(address account ,uint256 amount) internal {
+        i_lendTokens.burn(amount);
+    }
 
 }

@@ -50,10 +50,6 @@ contract LendingPoolCore {
         unchecked {
             i_userDeposits[depositor] += amount;
         }
-        bool postmint = i_lendingToken.mint(depositor, amount);
-        if (!postmint) {
-            revert("Minting failed");
-        }
     }
 
     //////////////////////////////////
