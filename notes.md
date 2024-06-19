@@ -12,6 +12,11 @@
     iv) user can borrow asset with a fee and compulsory collateral 
     v) user can liquidate the user who collateral value is less than the limit 
 
+--> Token1 :- has 18 decimal places
+    Token2 :- has 8 decimal places
+
+--> PriceFeed 1 :- has 8 decimal places 
+    PriceFeed 2 :- has 6 decimal places
 
 
 # Questions:

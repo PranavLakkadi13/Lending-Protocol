@@ -15,9 +15,7 @@ interface IFlashLoanSimpleReceiver {
     function executeOperation(
       address asset,
       uint256 amount,
-      uint256 premium,
-      address initiator
-      // bytes calldata params
+      uint256 premium
     ) external returns (bool);
   
     // function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);

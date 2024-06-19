@@ -9,6 +9,7 @@ import { LendTokens } from "./LendTokens.sol";
 contract LendingPoolCore {
 
     error CoreLogic__OnlyRouter();
+    error CoreLogic__OutOfBalance();
 
     //////////////////////////////////
     // State Variables ///////////////
@@ -22,11 +23,12 @@ contract LendingPoolCore {
     address private immutable i_poolFactory;
     LendTokens private immutable i_lendingToken;
     AggregatorV3Interface private immutable i_priceFeed;
-    mapping(address => Deposits ) private i_userDeposits;
+    mapping(address => Deposits ) private s_userDeposits;
+    mapping(address => Deposits ) private s_userBorrowedAmount;
+    mapping(address => Deposits ) private s_userCollateral;
     uint256 private constant BORROWING_RATIO = 150;
     uint256 private constant LIQUIDATION_TRESHOLD = 110;
     address private immutable i_Router;
-    mapping(address => uint) private i_userBorrowedAmount;
 
     //////////////////////////////////
     // Modifier //////////////////////
@@ -55,7 +57,7 @@ contract LendingPoolCore {
         // require(msg.sender == i_Router, "Only Router can call this function");
         SafeERC20.safeTransferFrom(i_underlyingAsset, depositor, address(this), amount);
         
-        Deposits storage deposit = i_userDeposits[depositor];
+        Deposits storage deposit = s_userDeposits[depositor];
         
         if (deposit.amount == 0) {
             deposit.amount = amount;
@@ -63,6 +65,25 @@ contract LendingPoolCore {
         else {
             deposit.amount += amount;
         }
+
+        s_userDeposits[depositor] = deposit;
+    }
+
+    function depositCollateral(address depositor, uint256 amount) external onlyRouter {
+        // require(msg.sender == i_Router, "Only Router can call this function");
+        SafeERC20.safeTransferFrom(i_underlyingAsset, depositor, address(this), amount);
+        
+        Deposits storage deposit = s_userCollateral[depositor];
+        
+        if (deposit.amount == 0) {
+            deposit.amount = amount;
+            deposit.isCollateral = true;
+        }
+        else {
+            deposit.amount += amount;
+        }
+
+        s_userCollateral[depositor] = deposit;
     }
 
     //////////////////////////////////
@@ -70,30 +91,53 @@ contract LendingPoolCore {
     //////////////////////////////////
 
 
+    // will look into this 
     function getBorrowableAmountBasedOnUSDAmount(address user, uint collateralInUSD) external view returns (uint value) {
         uint8 temp = 18 - i_priceFeed.decimals();
         
     }
 
-    function getCollateralValueInUSD(address user) external view returns (uint) {
+    /// To see the collateral value in USD
+    /// @param user address of the user
+    function getDepositValueInUSD(address user) external view returns (uint) {
         (,int price,,,) = i_priceFeed.latestRoundData();
+
         if (i_priceFeed.decimals() == 18) {
-            return (i_userDeposits[user].amount * uint(price));
+            return (s_userDeposits[user].amount * uint(price))/1e18;
         } 
         else { 
             uint8 temp = 18 - i_priceFeed.decimals();
-            return (i_userDeposits[user].amount * (uint(price) * (10 ** temp)))/ (10 ** 18);
+            uint8 temp2 = 18 - i_underlyingAsset.decimals();
+            return (s_userDeposits[user].amount * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
         }
+    }
+
+    //////////////////////////////////
+    // FlashLoan  ////////////////////
+    //////////////////////////////////
+
+    function FlashLoan(address user, uint amount) external onlyRouter {
+        if (amount > i_underlyingAsset.balanceOf(address(this))) {
+            revert CoreLogic__OutOfBalance();
+        }
+        SafeERC20.safeTransfer(i_underlyingAsset, address(i_Router), amount);
     }
 
     //////////////////////////////////
     // Getters for state variables ///
     //////////////////////////////////
 
-    function getCollateral(address user) external view returns (uint) {
-        return i_userDeposits[user].amount;
+    function getDepositAmount(address user) external view returns (uint) {
+        return s_userDeposits[user].amount;
     }
 
+    function getBorrowedAmount(address user) external view returns (uint) {
+        return s_userBorrowedAmount[user].amount;
+    }
+
+    function getCollateralAmount(address user) external view returns (uint) {
+        return s_userCollateral[user].amount;
+    }
 
     function assetAddress() external view returns (address) {
         return address(i_underlyingAsset);

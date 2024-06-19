@@ -5,6 +5,7 @@ import { Factory } from "./Factory.sol";
 import { LendingPoolCore } from "./CoreLogic.sol";
 import { LendTokens } from "./LendTokens.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IFlashLoanSimpleReceiver } from "./interface/IFlashLoanReceiver.sol";
 
 contract Router is Ownable {
 
@@ -27,6 +28,7 @@ contract Router is Ownable {
     Factory private immutable i_factory;
     mapping(address => address) private s_priceFeeds;
     LendTokens private immutable i_lendTokens;
+    // uint256 public flashloanFee = 5;
 
     constructor (address factory, address[2] memory tokenAddress, address[2] memory priceFeeds, address lendToken) 
     Ownable (msg.sender) {
@@ -81,6 +83,17 @@ contract Router is Ownable {
 
     function burnLendTokens(address account ,uint256 amount) internal {
         i_lendTokens.burn(amount);
+    }
+
+    
+    //////////////////////////////////
+    //// Flash Loan /////////////////
+    //////////////////////////////////
+
+    function flashLoan(address receiver, address token, uint256 amount) external {
+        
+        IFlashLoanSimpleReceiver(receiver).executeOperation(token, amount, flashloanFee);
+
     }
 
 }

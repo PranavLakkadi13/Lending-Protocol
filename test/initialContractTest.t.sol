@@ -20,6 +20,7 @@ contract InitialTest is Test {
     Factory public factory;
     Router public router;
     LendingPoolCore public lendingPoolCoreToken1;
+    LendingPoolCore public lendingPoolCoreToken2;
     LendTokens public lendTokens;
     Token1 public token1;
     Token2 public token2;
@@ -32,13 +33,15 @@ contract InitialTest is Test {
         token1 = new Token1();
         token2 = new Token2();
         priceFeedToken1 = new PriceFeedToken1(8,3000e8);
-        priceFeedToken2 = new PriceFeedToken2(8,1e8);
+        priceFeedToken2 = new PriceFeedToken2(8,7e8);
         lendTokens = new LendTokens();
         router = new Router(address(factory), [address(token1), address(token2)], [address(priceFeedToken1), address(priceFeedToken2)], address(lendTokens));
         lendTokens.transferOwnership(address(router));
         factory.setRouter(address(router));
         factory.createPool(address(token1), address(priceFeedToken1), address(lendTokens));
+        factory.createPool(address(token2), address(priceFeedToken2), address(lendTokens));
         lendingPoolCoreToken1 = LendingPoolCore(factory.getPoolAddress(address(token1)));
+        lendingPoolCoreToken2 = LendingPoolCore(factory.getPoolAddress(address(token2)));
         vm.stopPrank();
     }
 
@@ -57,7 +60,7 @@ contract InitialTest is Test {
         vm.stopPrank();
         lendingPoolCoreToken1.getRouter();
         console.log(address(router));
-        console.log(lendingPoolCoreToken1.getCollateral(bob));
+        console.log(lendingPoolCoreToken1.getDepositAmount(bob));
         assert(x != y);
 
         uint balBOB = lendTokens.balanceOf(bob);
@@ -69,6 +72,15 @@ contract InitialTest is Test {
         token1.approve(address(lendingPoolCoreToken1), 1000e18);
         router.depositLiquidity(address(token1), 1e18);
         vm.stopPrank();
-        lendingPoolCoreToken1.getCollateralValueInUSD(bob);
+        lendingPoolCoreToken1.getDepositValueInUSD(bob);
+    }
+
+    function testCheckDepositOfToken2() external {
+        vm.startPrank(bob);
+        token2.approve(address(lendingPoolCoreToken2), 1000e8);
+        router.depositLiquidity(address(token2), 17e8);
+        // lendingPoolCoreToken2.depositLiquidityAndMintTokens(bob, 17e8);
+        vm.stopPrank();
+        lendingPoolCoreToken2.getDepositValueInUSD(bob);
     }
 }
