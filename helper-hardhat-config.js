@@ -1,8 +1,9 @@
 const { ethers } = require("hardhat");
 
-const Token1Args = ["18", ethers.utils.parseEther("3000")]; 
+// Pricefeed for the token 1 
+const Token1Args = ["18", ethers.utils.parseUnits("3000","8")]; 
 
-const Token2Args = ["8", ethers.utils.parseEther("300")];
+const Token2Args = ["8", ethers.utils.parseUnits("1","8")];
 
 
 

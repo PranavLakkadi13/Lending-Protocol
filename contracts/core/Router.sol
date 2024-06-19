@@ -56,18 +56,19 @@ contract Router is Ownable {
         }
     }
 
-    function depositLiquidity(address depositor, address tokenToDeposit, uint256 amount) external {
-        if (tokenToDeposit == address(0) || amount == 0 || depositor == address(0)) {
+    function depositLiquidity(address tokenToDeposit, uint256 amount) external {
+        if (tokenToDeposit == address(0) || amount == 0) {
             revert Router__ZeroAddress();
         }
-        
-        address pool = Factory(i_factory).getPoolAddress(tokenToDeposit);
-        
+
+        address pool;
+        pool = Factory(i_factory).getPoolAddress(tokenToDeposit);
         if (pool == address(0)) {
-            pool = i_factory.createPool(tokenToDeposit, s_priceFeeds[tokenToDeposit]);
+            pool = i_factory.createPool(tokenToDeposit, s_priceFeeds[tokenToDeposit], address(i_lendTokens));
         }
-        LendingPoolCore(pool).depositLiquidityAndMintTokens(depositor, amount);
-        mintLendTokens(depositor, amount);
+        
+        LendingPoolCore(pool).depositLiquidityAndMintTokens(msg.sender, amount);
+        mintLendTokens(msg.sender, amount);
     }
 
     //////////////////////////////////

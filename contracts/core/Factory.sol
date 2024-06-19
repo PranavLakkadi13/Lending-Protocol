@@ -29,7 +29,7 @@ contract Factory is Ownable {
         return allPools.length;
     }
 
-    function createPool(address underlyingAsset, address pricefeedAddress) external returns (address pool) { 
+    function createPool(address underlyingAsset, address pricefeedAddress, address lendToken) external returns (address pool) { 
         if (underlyingAsset == address(0)) {
             revert Factory__ZeroAddress();
         }
@@ -37,13 +37,19 @@ contract Factory is Ownable {
             revert Factory__PoolExists();
         }
         bytes memory bytecode = type(LendingPoolCore).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(underlyingAsset, pricefeedAddress, s_Router));
+        
+        bytes memory endOutput = abi.encodePacked(bytecode,abi.encode(underlyingAsset, pricefeedAddress, s_Router, lendToken));
+        
+        bytes32 salt = keccak256(abi.encodePacked(underlyingAsset, pricefeedAddress, s_Router, lendToken));
+        
         assembly {
-            pool := create2(0xff, add(bytecode, 32), mload(bytecode), salt)
+            pool := create2(0, add(endOutput, 32), mload(endOutput), salt)
         }
+        
         if (pool == address(0)) {
             revert Factory__PoolCreationFailed();
         }
+
         getPool[underlyingAsset] = pool;
         allPools.push(pool);
         emit PoolCreated(underlyingAsset, pool, allPools.length);
