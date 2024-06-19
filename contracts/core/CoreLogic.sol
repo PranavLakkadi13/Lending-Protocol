@@ -77,16 +77,13 @@ contract LendingPoolCore {
 
     function getCollateralValueInUSD(address user) external view returns (uint) {
         (,int price,,,) = i_priceFeed.latestRoundData();
-
-        
         if (i_priceFeed.decimals() == 18) {
-            return (i_userDeposits[user].amount * uint(price))/1e8;
+            return (i_userDeposits[user].amount * uint(price));
         } 
         else { 
             uint8 temp = 18 - i_priceFeed.decimals();
             return (i_userDeposits[user].amount * (uint(price) * (10 ** temp)))/ (10 ** 18);
         }
-
     }
 
     //////////////////////////////////

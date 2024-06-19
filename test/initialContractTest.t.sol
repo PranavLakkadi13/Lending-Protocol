@@ -31,8 +31,8 @@ contract InitialTest is Test {
         factory = new Factory();
         token1 = new Token1();
         token2 = new Token2();
-        priceFeedToken1 = new PriceFeedToken1(18,3000e8);
-        priceFeedToken2 = new PriceFeedToken2(18,1e8);
+        priceFeedToken1 = new PriceFeedToken1(8,3000e8);
+        priceFeedToken2 = new PriceFeedToken2(8,1e8);
         lendTokens = new LendTokens();
         router = new Router(address(factory), [address(token1), address(token2)], [address(priceFeedToken1), address(priceFeedToken2)], address(lendTokens));
         lendTokens.transferOwnership(address(router));
