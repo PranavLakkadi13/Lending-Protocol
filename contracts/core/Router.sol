@@ -6,6 +6,8 @@ import { LendingPoolCore } from "./CoreLogic.sol";
 import { LendTokens } from "./LendTokens.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IFlashLoanSimpleReceiver } from "./interface/IFlashLoanReceiver.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract Router is Ownable {
 
@@ -14,11 +16,6 @@ contract Router is Ownable {
     //////////////////////////////////
     // State Variables ///////////////
     //////////////////////////////////
-
-    struct PoolDepositPosition{
-        address pool;
-        uint amount;
-    }
 
     struct PoolLendPosition {
         address pool;
@@ -73,6 +70,20 @@ contract Router is Ownable {
         mintLendTokens(msg.sender, amount);
     }
 
+    function withdrawDepositedFunds(address tokenToWithdraw, uint256 amount) external {
+        if (tokenToWithdraw == address(0) || amount == 0) {
+            revert Router__ZeroAddress();
+        }
+
+        address pool = Factory(i_factory).getPoolAddress(tokenToWithdraw);
+        if (pool == address(0)) {
+            revert Router__ZeroAddress();
+        }
+
+//        LendingPoolCore(pool).withdrawLiquidity(msg.sender, amount);
+        burnLendTokens(msg.sender, amount);
+    }
+
     //////////////////////////////////
     //// LEND Tokens Manager /////////
     //////////////////////////////////
@@ -103,9 +114,10 @@ contract Router is Ownable {
 
         LendingPoolCore(pool).FlashLoan(msg.sender,amount);
 
-        IFlashLoanSimpleReceiver(msg.sender).executeOperation(token, amount, flashloanFee, pool);
+        IFlashLoanSimpleReceiver(msg.sender).executeOperation(token, amount, flashloanFee);
 
-        SafeERC20.safeTransferFrom(ERC20(token), msg.sender, address(pool), amount + flashloanFee);
+        SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount + flashloanFee);
+        SafeERC20.safeTransfer(IERC20(token), address(pool), amount + flashloanFee);
     }
 
 }

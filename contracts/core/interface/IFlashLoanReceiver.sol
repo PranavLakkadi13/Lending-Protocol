@@ -10,14 +10,12 @@ interface IFlashLoanSimpleReceiver {
      * @param asset The address of the flash-borrowed asset
      * @param amount The amount of the flash-borrowed asset
      * @param premium The fee of the flash-borrowed asset
-     * @return True if the execution of the operation succeeds, false otherwise
      */
     function executeOperation(
       address asset,
       uint256 amount,
-      uint256 premium, // The amount of fee to be paid
-      address pool
-    ) external returns (bool);
+      uint256 premium // The amount of fee to be paid
+    ) external ;
   
     // function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);
   

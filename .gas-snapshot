@@ -1,0 +1,6 @@
+FlashTest:test() (gas: 2758)
+FlashTest:test_flashLoanRevert() (gas: 225245)
+InitialTest:testCheckDepositOfToken2() (gas: 179614)
+InitialTest:testCollateralValue() (gas: 179342)
+InitialTest:test_depositofAsset() (gas: 151990)
+InitialTest:test_ifthefactoryisdeployed() (gas: 18291)

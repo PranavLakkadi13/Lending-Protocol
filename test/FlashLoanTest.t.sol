@@ -11,25 +11,26 @@ import { Token1 } from "../contracts/Tokens_ERC20/Token1.sol";
 import { Token2 } from "../contracts/Tokens_ERC20/Token2.sol";
 import { PriceFeedToken1 } from "../contracts/Price_Feed/PriceFeedToken1.sol";
 import { PriceFeedToken2 } from "../contracts/Price_Feed/PriceFeedToken2.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract FlashLoanTest is IFlashLoanSimpleReceiver {
     address public immutable i_owner;
-    ERC20 private immutable i_underlyingAsset;
+    IERC20 private immutable i_underlyingAsset;
     Router private immutable i_router;
 
     constructor(address token,address router){
         i_owner = msg.sender;
-        i_underlyingAsset = ERC20(token);
+        i_underlyingAsset = IERC20(token);
         i_router = Router(router);
     }
 
-    function executeOperation(address _reserve, uint256 _amount, uint256 _fee, address pool) external override {
+    function executeOperation(address _token, uint256 _amount, uint256 _fee) external override {
         console.log("FlashLoan executed");
-        ERC20.approve(pool, _amount + _fee);
+        IERC20(_token).approve(address(i_router), _amount + _fee);
     }
 
     function flashLoan(uint256 amount) public {
-        i_router.flashLoan(address(this), address(i_underlyingAsset), amount);
+        i_router.flashLoan(address(i_underlyingAsset), amount);
     }
 }
 
@@ -70,7 +71,25 @@ contract FlashTest is Test {
     }
 
     function test_flashLoanRevert() public {
+        vm.startPrank(bob);
+        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        router.depositLiquidity(address(token1), 1000e18);
+        assert(lendTokens.balanceOf(bob) == 1000e18);
         vm.expectRevert();
+        test.flashLoan(1e18);
+        vm.stopPrank();
+    }
 
+    function test_flashLoanWorks() public {
+        vm.startPrank(bob);
+        token1.transfer(address(test), 1e18);
+        uint256 x = token1.balanceOf(address(lendingPoolCoreToken1));
+        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        router.depositLiquidity(address(token1), 1000e18);
+        assert(lendTokens.balanceOf(bob) == 1000e18);
+        test.flashLoan(1e18);
+        vm.stopPrank();
+        uint256 y = token1.balanceOf(address(lendingPoolCoreToken1));
+        assert(x < y);
     }
 }
