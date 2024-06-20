@@ -15,7 +15,8 @@ interface IFlashLoanSimpleReceiver {
     function executeOperation(
       address asset,
       uint256 amount,
-      uint256 premium
+      uint256 premium, // The amount of fee to be paid
+      address pool
     ) external returns (bool);
   
     // function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);

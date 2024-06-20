@@ -116,12 +116,14 @@ contract LendingPoolCore {
     // FlashLoan  ////////////////////
     //////////////////////////////////
 
-    function FlashLoan(address user, uint amount) external onlyRouter {
+    function FlashLoan(address receiver,uint amount) external onlyRouter {
         if (amount > i_underlyingAsset.balanceOf(address(this))) {
             revert CoreLogic__OutOfBalance();
         }
-        SafeERC20.safeTransfer(i_underlyingAsset, address(i_Router), amount);
+//        SafeERC20.safeTransfer(i_underlyingAsset, address(i_Router), amount);
+        i_underlyingAsset.transfer(receiver, amount);
     }
+
 
     //////////////////////////////////
     // Getters for state variables ///

@@ -90,10 +90,22 @@ contract Router is Ownable {
     //// Flash Loan /////////////////
     //////////////////////////////////
 
-    function flashLoan(address receiver, address token, uint256 amount) external {
-        
-        IFlashLoanSimpleReceiver(receiver).executeOperation(token, amount, flashloanFee);
+    function flashLoan(address token, uint256 amount) external {
+        if (token == address(0) || amount == 0) {
+            revert Router__ZeroAddress();
+        }
+        address pool = Factory(i_factory).getPoolAddress(token);
+        if (address(pool) == address(0)) {
+            revert Router__ZeroAddress();
+        }
 
+        uint256 flashloanFee = (amount * 5) / 10000;
+
+        LendingPoolCore(pool).FlashLoan(msg.sender,amount);
+
+        IFlashLoanSimpleReceiver(msg.sender).executeOperation(token, amount, flashloanFee, pool);
+
+        SafeERC20.safeTransferFrom(ERC20(token), msg.sender, address(pool), amount + flashloanFee);
     }
 
 }
