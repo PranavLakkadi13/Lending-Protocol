@@ -17,6 +17,8 @@ contract InitialTest is Test {
     address public bob = makeAddr("bob");
     address public alice = makeAddr("alice");
 
+    event DepositLiquidity(address indexed depositor, uint indexed amount, uint256 shares_minted, uint256 indexed depositCounter);
+
     Factory public factory;
     Router public router;
     LendingPoolCore public lendingPoolCoreToken1;
@@ -82,5 +84,14 @@ contract InitialTest is Test {
         // lendingPoolCoreToken2.depositLiquidityAndMintTokens(bob, 17e8);
         vm.stopPrank();
         lendingPoolCoreToken2.getDepositValueInUSD(bob);
+    }
+
+    function testDepositEventEmit() public {
+        vm.startPrank(bob);
+        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        vm.expectEmit(true,true,false,true);
+        emit DepositLiquidity(bob, 1000e18,1000e18, 0);
+        router.depositLiquidity(address(token1), 1000e18);
+        vm.stopPrank();
     }
 }

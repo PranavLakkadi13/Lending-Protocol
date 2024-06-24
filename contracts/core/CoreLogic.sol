@@ -14,6 +14,7 @@ contract LendingPoolCore {
 
     error CoreLogic__OnlyRouter();
     error CoreLogic__OutOfBalance();
+    error CoreLogic__InvalidDepositId();
 
     event DepositLiquidity(address indexed depositor, uint indexed amount, uint256 shares_minted, uint256 indexed depositCounter);
     event CollateralDeposited(address indexed depositor, uint indexed amount);
@@ -23,7 +24,7 @@ contract LendingPoolCore {
     //////////////////////////////////
     struct Deposits {
         uint amount;
-        uint256 timeOfdeposit;
+        uint256 timeOfDeposit;
     }
 
     struct TimeBasedDeposits {
@@ -57,11 +58,11 @@ contract LendingPoolCore {
         }
     }
 
-    constructor (address token, address pricefeed, address router, address lendToken) {
+    constructor (address token, address priceFeed, address router, address lendToken) {
         i_underlyingAsset = ERC20(token);
         i_poolFactory = msg.sender;
         i_lendingToken = LendTokens(lendToken);
-        i_priceFeed = AggregatorV3Interface(pricefeed); 
+        i_priceFeed = AggregatorV3Interface(priceFeed);
         i_Router = router;
     }
 
@@ -77,14 +78,15 @@ contract LendingPoolCore {
 
         unchecked {
             deposit.trackedDeposits[deposit.depositCounter].amount = amount;
-            deposit.trackedDeposits[deposit.depositCounter].timeOfdeposit = block.timestamp;
-            deposit.depositCounter++;
+            deposit.trackedDeposits[deposit.depositCounter].timeOfDeposit = block.timestamp;
             deposit.totalDepositedAmount += amount;
         }
 
 //        s_userDeposits[depositor] = deposit;
-
         emit DepositLiquidity(depositor, amount, amount, deposit.depositCounter);
+
+        deposit.depositCounter++;
+
     }
 
 
@@ -100,13 +102,15 @@ contract LendingPoolCore {
     }
 
 
-    function withdrawLiquidity(address user, uint amount) external onlyRouter {
+    function withdrawLiquidity(address user, uint amount, uint256 depositId) external onlyRouter {
         require(msg.sender == i_Router, "Only router can call this function");
-//        if (s_userDeposits[user].depositCounter)
-//
-//
-//        SafeERC20.safeTransfer(i_underlyingAsset, user, amount);
-//        s_userDeposits[user].amount -= amount;
+        if (s_userDeposits[user].depositCounter < depositId) {
+            revert CoreLogic__InvalidDepositId();
+        }
+        TimeBasedDeposits storage deposit = s_userDeposits[user];
+        deposit.trackedDeposits[depositId].amount -= amount;
+        deposit.totalDepositedAmount -= amount;
+        deposit.depositsThatAreWithdrawn.push(depositId);
     }
 
     //////////////////////////////////
