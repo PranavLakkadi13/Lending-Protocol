@@ -15,7 +15,7 @@ contract LendingPoolCore {
     error CoreLogic__OnlyRouter();
     error CoreLogic__OutOfBalance();
 
-    event DepositLiquidity(address indexed depositor, uint indexed amount, uint256 shares_minted);
+    event DepositLiquidity(address indexed depositor, uint indexed amount, uint256 shares_minted, uint256 indexed depositCounter);
     event CollateralDeposited(address indexed depositor, uint indexed amount);
 
     //////////////////////////////////
@@ -27,9 +27,10 @@ contract LendingPoolCore {
     }
 
     struct TimeBasedDeposits {
-        uint256[] depositCount;
+        uint256[] depositsThatAreWithdrawn;
         mapping(uint256 => Deposits) trackedDeposits;
         uint256 depositCounter;
+        uint256 totalDepositedAmount;
     }
 
     ERC20 private immutable i_underlyingAsset;
@@ -77,12 +78,15 @@ contract LendingPoolCore {
         unchecked {
             deposit.trackedDeposits[deposit.depositCounter].amount = amount;
             deposit.trackedDeposits[deposit.depositCounter].timeOfdeposit = block.timestamp;
-            deposit.depositCount.push(deposit.depositCounter);
             deposit.depositCounter++;
+            deposit.totalDepositedAmount += amount;
         }
 
-        emit DepositLiquidity(depositor, amount, amount);
+//        s_userDeposits[depositor] = deposit;
+
+        emit DepositLiquidity(depositor, amount, amount, deposit.depositCounter);
     }
+
 
     function depositCollateral(address depositor, uint256 amount) external onlyRouter {
         require(msg.sender == i_Router, "Only Router can call this function");
@@ -95,15 +99,15 @@ contract LendingPoolCore {
         emit CollateralDeposited(depositor, amount);
     }
 
-//    function withdrawLiquidity(address user, uint amount) external onlyRouter {
-//        if (amount > s_userDeposits[user].amount && s_userDeposits[user].isCollateral == false) {
-//            revert CoreLogic__OutOfBalance();
-//        }
+
+    function withdrawLiquidity(address user, uint amount) external onlyRouter {
+        require(msg.sender == i_Router, "Only router can call this function");
+//        if (s_userDeposits[user].depositCounter)
 //
 //
 //        SafeERC20.safeTransfer(i_underlyingAsset, user, amount);
 //        s_userDeposits[user].amount -= amount;
-//    }
+    }
 
     //////////////////////////////////
     // Getters for core logic ////////
@@ -149,9 +153,10 @@ contract LendingPoolCore {
     //////////////////////////////////
 
     function getDepositAmount(address user) public view returns (uint256 depositedAmount) {
-        for (uint i = 0; i < s_userDeposits[user].depositCounter; i++) {
-            depositedAmount += s_userDeposits[user].trackedDeposits[s_userDeposits[user].depositCount[i]].amount;
-        }
+//        for (uint i = 0; i < s_userDeposits[user].depositCounter; i++) {
+//            depositedAmount += s_userDeposits[user].trackedDeposits[s_userDeposits[user].depositCount[i]].amount;
+//        }
+        return s_userDeposits[user].totalDepositedAmount;
     }
 
 //    function getBorrowedAmount(address user) external view returns (uint) {
