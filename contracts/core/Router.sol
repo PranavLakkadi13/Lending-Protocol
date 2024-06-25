@@ -70,7 +70,7 @@ contract Router is Ownable {
         mintLendTokens(msg.sender, amount);
     }
 
-    function withdrawDepositedFunds(address tokenToWithdraw, uint256 amount) external {
+    function withdrawDepositedFunds(address tokenToWithdraw, uint256 amount, uint256 depositId) external {
         if (tokenToWithdraw == address(0) || amount == 0) {
             revert Router__ZeroAddress();
         }
@@ -80,7 +80,8 @@ contract Router is Ownable {
             revert Router__ZeroAddress();
         }
 
-//        LendingPoolCore(pool).withdrawLiquidity(msg.sender, amount);
+        LendingPoolCore(pool).withdrawLiquidity(msg.sender, amount, depositId);
+        SafeERC20.safeTransferFrom(IERC20(i_lendTokens), msg.sender, address(this), amount);
         burnLendTokens(msg.sender, amount);
     }
 

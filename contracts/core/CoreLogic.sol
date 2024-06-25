@@ -18,6 +18,7 @@ contract LendingPoolCore {
 
     event DepositLiquidity(address indexed depositor, uint indexed amount, uint256 shares_minted, uint256 indexed depositCounter);
     event CollateralDeposited(address indexed depositor, uint indexed amount);
+    event SimpleWithdraw(address indexed depositor, uint indexed amount, uint256 indexed depositCounter);
 
     //////////////////////////////////
     // State Variables ///////////////
@@ -108,9 +109,21 @@ contract LendingPoolCore {
             revert CoreLogic__InvalidDepositId();
         }
         TimeBasedDeposits storage deposit = s_userDeposits[user];
-        deposit.trackedDeposits[depositId].amount -= amount;
-        deposit.totalDepositedAmount -= amount;
-        deposit.depositsThatAreWithdrawn.push(depositId);
+
+        if (amount == deposit.trackedDeposits[depositId].amount) {
+            deposit.trackedDeposits[depositId].amount -= amount;
+            deposit.totalDepositedAmount -= amount;
+            deposit.depositsThatAreWithdrawn.push(depositId);
+
+            SafeERC20.safeTransfer(i_underlyingAsset, user, amount);
+
+            emit SimpleWithdraw(user, amount, depositId);
+        }
+        else {
+            deposit.trackedDeposits[depositId].amount -= amount;
+            deposit.totalDepositedAmount -= amount;
+            deposit.depositsThatAreWithdrawn.push(depositId);
+        }
     }
 
     //////////////////////////////////

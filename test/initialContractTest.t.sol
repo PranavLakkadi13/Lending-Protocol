@@ -94,4 +94,16 @@ contract InitialTest is Test {
         router.depositLiquidity(address(token1), 1000e18);
         vm.stopPrank();
     }
+
+    function testSimpleWithdraw() public {
+        vm.startPrank(bob);
+        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        router.depositLiquidity(address(token1), 1000e18);
+        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 1000e18);
+        lendTokens.approve(address(router), 1e21);
+        vm.warp(block.timestamp + 1000);
+        router.withdrawDepositedFunds(address(token1), 1000e18, 0);
+        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 0);
+        vm.stopPrank();
+    }
 }
