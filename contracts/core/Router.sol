@@ -12,6 +12,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 contract Router is Ownable {
 
     error Router__ZeroAddress();
+    error Router__AlreadyWithdrawnAmount();
 
     //////////////////////////////////
     // State Variables ///////////////
@@ -83,6 +84,20 @@ contract Router is Ownable {
         LendingPoolCore(pool).withdrawLiquidity(msg.sender, amount, depositId);
         SafeERC20.safeTransferFrom(IERC20(i_lendTokens), msg.sender, address(this), amount);
         burnLendTokens(msg.sender, amount);
+    }
+
+    function withdrawTotalUserDeposit(address tokenToWithdraw) external {
+        if (tokenToWithdraw == address(0) || i_factory.getPoolAddress(tokenToWithdraw) == address(0)) {
+            revert Router__ZeroAddress();
+        }
+        address pool = i_factory.getPoolAddress(tokenToWithdraw);
+
+        uint256 amount = LendingPoolCore(pool).getDepositAmount(msg.sender);
+        if (amount == 0) {
+            revert Router__AlreadyWithdrawnAmount();
+        }
+        LendingPoolCore(pool).withdrawTotalAmount(msg.sender);
+        burnLendTokens(msg.sender,amount);
     }
 
     //////////////////////////////////

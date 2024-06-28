@@ -126,6 +126,12 @@ contract LendingPoolCore {
         }
     }
 
+    function withdrawTotalAmount(address user) public onlyRouter {
+        require(msg.sender == i_Router, "Only router can call this function");
+
+
+    }
+
     //////////////////////////////////
     // Getters for core logic ////////
     //////////////////////////////////

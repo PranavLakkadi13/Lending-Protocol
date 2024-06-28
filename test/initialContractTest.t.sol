@@ -104,6 +104,7 @@ contract InitialTest is Test {
         vm.warp(block.timestamp + 1000);
         router.withdrawDepositedFunds(address(token1), 1000e18, 0);
         assert(lendingPoolCoreToken1.getDepositAmount(bob) == 0);
+        assert(lendTokens.balanceOf(address(bob)) == 0);
         vm.stopPrank();
     }
 }
