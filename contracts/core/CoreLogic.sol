@@ -128,8 +128,11 @@ contract LendingPoolCore {
 
     function withdrawTotalAmount(address user) public onlyRouter {
         require(msg.sender == i_Router, "Only router can call this function");
-
-
+        uint256 amountToWithdraw = getDepositAmount(user);
+        for (uint i = 0; i < s_userDeposits[user].depositCounter; i++) {
+            uint256 amountInThatDepositId = s_userDeposits[user].trackedDeposits[i].amount;
+            withdrawLiquidity(user, amountInThatDepositId, i);
+        }
     }
 
     //////////////////////////////////
