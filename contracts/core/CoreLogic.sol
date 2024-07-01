@@ -30,6 +30,7 @@ contract LendingPoolCore {
 
     struct TimeBasedDeposits {
         uint256[] depositsThatAreWithdrawn;
+        mapping(uint256 => bool) isWithdrawn;
         mapping(uint256 => Deposits) trackedDeposits;
         uint256 depositCounter;
         uint256 totalDepositedAmount;
@@ -103,7 +104,7 @@ contract LendingPoolCore {
     }
 
 
-    function withdrawLiquidity(address user, uint amount, uint256 depositId) external onlyRouter {
+    function withdrawLiquidity(address user, uint amount, uint256 depositId) public onlyRouter {
         require(msg.sender == i_Router, "Only router can call this function");
         if (s_userDeposits[user].depositCounter < depositId) {
             revert CoreLogic__InvalidDepositId();
@@ -114,7 +115,8 @@ contract LendingPoolCore {
             deposit.trackedDeposits[depositId].amount -= amount;
             deposit.totalDepositedAmount -= amount;
             deposit.depositsThatAreWithdrawn.push(depositId);
-
+            deposit.isWithdrawn[depositId] = true;
+//
             SafeERC20.safeTransfer(i_underlyingAsset, user, amount);
 
             emit SimpleWithdraw(user, amount, depositId);
@@ -122,7 +124,7 @@ contract LendingPoolCore {
         else {
             deposit.trackedDeposits[depositId].amount -= amount;
             deposit.totalDepositedAmount -= amount;
-            deposit.depositsThatAreWithdrawn.push(depositId);
+//            deposit.depositsThatAreWithdrawn.push(depositId);
         }
     }
 
@@ -130,8 +132,10 @@ contract LendingPoolCore {
         require(msg.sender == i_Router, "Only router can call this function");
         uint256 amountToWithdraw = getDepositAmount(user);
         for (uint i = 0; i < s_userDeposits[user].depositCounter; i++) {
-            uint256 amountInThatDepositId = s_userDeposits[user].trackedDeposits[i].amount;
-            withdrawLiquidity(user, amountInThatDepositId, i);
+            if (s_userDeposits[user].isWithdrawn[i] == false) {
+                uint256 amountInThatDepositId = s_userDeposits[user].trackedDeposits[i].amount;
+                withdrawLiquidity(user, amountInThatDepositId, i);
+            }
         }
     }
 
