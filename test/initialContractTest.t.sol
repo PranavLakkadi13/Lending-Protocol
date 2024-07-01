@@ -107,4 +107,20 @@ contract InitialTest is Test {
         assert(lendTokens.balanceOf(address(bob)) == 0);
         vm.stopPrank();
     }
+
+    function testMultidepositandWithdraw() public {
+        vm.startPrank(bob);
+        token1.approve(address(lendingPoolCoreToken1), 3000e18);
+        router.depositLiquidity(address(token1), 1000e18);
+        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 1000e18);
+        router.depositLiquidity(address(token1), 1000e18);
+        router.depositLiquidity(address(token1), 1000e18);
+        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 3000e18);
+        lendTokens.approve(address(router), 3e21);
+        vm.warp(block.timestamp + 1000);
+        lendTokens.balanceOf(bob);
+        router.withdrawTotalUserDeposit(address(token1));
+//        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 0);
+        vm.stopPrank();
+    }
 }
