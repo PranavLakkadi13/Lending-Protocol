@@ -69,7 +69,13 @@ contract LendingPoolCore {
     }
 
     //////////////////////////////////
-    // core logic ////////////////////
+    //////////////////////////////////
+    // CORE LOGIC ////////////////////
+    //////////////////////////////////
+    //////////////////////////////////
+
+    //////////////////////////////////
+    ////  Deposit Functions //////////
     //////////////////////////////////
 
     function depositLiquidityAndMintTokens(address depositor, uint256 amount) external onlyRouter {
@@ -103,6 +109,10 @@ contract LendingPoolCore {
         emit CollateralDeposited(depositor, amount);
     }
 
+    //////////////////////////////////
+    ////  Withdraw Functions /////////
+    //////////////////////////////////
+
 
     function withdrawLiquidity(address user, uint amount, uint256 depositId) public onlyRouter {
         require(msg.sender == i_Router, "Only router can call this function");
@@ -130,7 +140,7 @@ contract LendingPoolCore {
 
     function withdrawTotalAmount(address user) public onlyRouter {
         require(msg.sender == i_Router, "Only router can call this function");
-        uint256 amountToWithdraw = getDepositAmount(user);
+        uint256 amountToWithdraw = getTotalDepositAmount(user);
         for (uint i = 0; i < s_userDeposits[user].depositCounter; i++) {
             if (!s_userDeposits[user].isWithdrawn[i]) {
                 uint256 amountInThatDepositId = s_userDeposits[user].trackedDeposits[i].amount;
@@ -156,12 +166,12 @@ contract LendingPoolCore {
         (,int price,,,) = i_priceFeed.latestRoundData();
 
         if (i_priceFeed.decimals() == 18) {
-            return (getDepositAmount(user) * uint(price))/1e18;
+            return (getTotalDepositAmount(user) * uint(price))/1e18;
         } 
         else { 
             uint8 temp = 18 - i_priceFeed.decimals();
             uint8 temp2 = 18 - i_underlyingAsset.decimals();
-            return (getDepositAmount(user) * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
+            return (getTotalDepositAmount(user) * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
         }
     }
 
@@ -182,11 +192,12 @@ contract LendingPoolCore {
     // Getters for state variables ///
     //////////////////////////////////
 
-    function getDepositAmount(address user) public view returns (uint256 depositedAmount) {
-//        for (uint i = 0; i < s_userDeposits[user].depositCounter; i++) {
-//            depositedAmount += s_userDeposits[user].trackedDeposits[s_userDeposits[user].depositCount[i]].amount;
-//        }
+    function getTotalDepositAmount(address user) public view returns (uint256 depositedAmount) {
         return s_userDeposits[user].totalDepositedAmount;
+    }
+
+    function getIndividualDepositAmount(address user, uint256 depositId) public view returns (uint256) {
+        return s_userDeposits[user].trackedDeposits[depositId].amount;
     }
 
 //    function getBorrowedAmount(address user) external view returns (uint) {

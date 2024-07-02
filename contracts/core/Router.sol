@@ -56,6 +56,10 @@ contract Router is Ownable {
         }
     }
 
+    //////////////////////////////////
+    //// Deposit Functions ///////////
+    //////////////////////////////////
+
     function depositLiquidity(address tokenToDeposit, uint256 amount) external {
         if (tokenToDeposit == address(0) || amount == 0) {
             revert Router__ZeroAddress();
@@ -71,7 +75,11 @@ contract Router is Ownable {
         mintLendTokens(msg.sender, amount);
     }
 
-    function withdrawDepositedFunds(address tokenToWithdraw, uint256 amount, uint256 depositId) external {
+    //////////////////////////////////
+    ////  Withdraw Functions /////////
+    //////////////////////////////////
+
+    function withdrawDepositedFunds(address tokenToWithdraw, uint256 amount, uint256 depositId) public {
         if (tokenToWithdraw == address(0) || amount == 0) {
             revert Router__ZeroAddress();
         }
@@ -92,12 +100,19 @@ contract Router is Ownable {
         }
         address pool = i_factory.getPoolAddress(tokenToWithdraw);
 
-        uint256 amount = LendingPoolCore(pool).getDepositAmount(msg.sender);
+        uint256 amount = LendingPoolCore(pool).getTotalDepositAmount(msg.sender);
         if (amount == 0) {
             revert Router__AlreadyWithdrawnAmount();
         }
         LendingPoolCore(pool).withdrawTotalAmount(msg.sender);
+        SafeERC20.safeTransferFrom(IERC20(i_lendTokens), msg.sender, address(this), amount);
         burnLendTokens(msg.sender,amount);
+    }
+
+    function withdrawMultipleDepositsSameAsset(address tokensToWithdraw, uint256[] calldata depositIds, uint256[] calldata depositAmounts) external {
+        for (uint i = 0; i < depositIds.length; i++) {
+            withdrawDepositedFunds(tokensToWithdraw, depositAmounts[i], depositIds[i]);
+        }
     }
 
     //////////////////////////////////

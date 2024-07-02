@@ -62,7 +62,7 @@ contract InitialTest is Test {
         vm.stopPrank();
         lendingPoolCoreToken1.getRouter();
         console.log(address(router));
-        console.log(lendingPoolCoreToken1.getDepositAmount(bob));
+        console.log(lendingPoolCoreToken1.getTotalDepositAmount(bob));
         assert(x != y);
 
         uint balBOB = lendTokens.balanceOf(bob);
@@ -99,11 +99,11 @@ contract InitialTest is Test {
         vm.startPrank(bob);
         token1.approve(address(lendingPoolCoreToken1), 1000e18);
         router.depositLiquidity(address(token1), 1000e18);
-        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 1000e18);
+        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 1000e18);
         lendTokens.approve(address(router), 1e21);
         vm.warp(block.timestamp + 1000);
         router.withdrawDepositedFunds(address(token1), 1000e18, 0);
-        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 0);
+        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 0);
         assert(lendTokens.balanceOf(address(bob)) == 0);
         vm.stopPrank();
     }
@@ -112,15 +112,23 @@ contract InitialTest is Test {
         vm.startPrank(bob);
         token1.approve(address(lendingPoolCoreToken1), 3000e18);
         router.depositLiquidity(address(token1), 1000e18);
-        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 1000e18);
+        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 1000e18);
         router.depositLiquidity(address(token1), 1000e18);
         router.depositLiquidity(address(token1), 1000e18);
-        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 3000e18);
+        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 3000e18);
         lendTokens.approve(address(router), 3e21);
         vm.warp(block.timestamp + 1000);
         lendTokens.balanceOf(bob);
         router.withdrawTotalUserDeposit(address(token1));
 //        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 0);
         vm.stopPrank();
+    }
+
+    function testFuzzMultiDepositAndWithdraw(uint256[] calldata amounts) public {
+
+    }
+
+    function testMultiDepositAndSemiWithdrawAsset(uint256[] calldata amounts) public {
+
     }
 }
