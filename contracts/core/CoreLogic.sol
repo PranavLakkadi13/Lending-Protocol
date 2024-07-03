@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+/// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -48,7 +48,9 @@ contract LendingPoolCore {
     uint256 private constant WITHDRAWAL_INTEREST = 3;
     uint256 private constant PRECISION = 5;
     address private immutable i_Router;
-
+    uint256 private s_totalUserDeposits;
+    uint256 private s_totalUserCounter;
+	
     //////////////////////////////////
     // Modifier //////////////////////
     //////////////////////////////////
@@ -88,7 +90,9 @@ contract LendingPoolCore {
             deposit.trackedDeposits[deposit.depositCounter].amount = amount;
             deposit.trackedDeposits[deposit.depositCounter].timeOfDeposit = block.timestamp;
             deposit.totalDepositedAmount += amount;
-        }
+            s_totalUserDeposits += amount;
+            s_totalUserDeposits++;
+  }
 
 //        s_userDeposits[depositor] = deposit;
         emit DepositLiquidity(depositor, amount, amount, deposit.depositCounter);
@@ -126,6 +130,8 @@ contract LendingPoolCore {
             deposit.totalDepositedAmount -= amount;
             deposit.depositsThatAreWithdrawn.push(depositId);
             deposit.isWithdrawn[depositId] = true;
+            s_totalUserDeposits -= amount;
+            s_totalUserCounter--;
 //
             SafeERC20.safeTransfer(i_underlyingAsset, user, amount);
 
@@ -135,6 +141,7 @@ contract LendingPoolCore {
             deposit.trackedDeposits[depositId].amount -= amount;
             deposit.totalDepositedAmount -= amount;
 //            deposit.depositsThatAreWithdrawn.push(depositId);
+            s_totalUserDeposits -= amount;
         }
     }
 
@@ -226,5 +233,13 @@ contract LendingPoolCore {
 
     function getRouter() external view returns (address) {
         return i_Router;
+    }
+
+    function getTotalUserDeposits() external view returns (uint256) {
+        return s_totalUserDeposits;
+    }
+
+    function getTotalUserCounter() external view returns (uint256) {
+        return s_totalUserCounter;
     }
 }
