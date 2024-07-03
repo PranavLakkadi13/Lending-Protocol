@@ -1,3 +1,19 @@
+//   mmm                                       mmm  #               "
+//   m"   "  m mm   mmm    mmm    mmm          m"   " # mm    mmm   mmm    m mm
+//   #       #"  " #" "#  #   "  #   "         #      #"  #  "   #    #    #"  #
+//   #       #     #   #   """m   """m   """   #      #   #  m"""#    #    #   #
+//   "mmm"  #     "#m#"  "mmm"  "mmm"          "mmm" #   #  "mm"#  mm#mm  #   #
+//
+//
+//
+//   m                        #    "
+//   #       mmm   m mm    mmm#  mmm    m mm    mmmm
+//   #      #"  #  #"  #  #" "#    #    #"  #  #" "#
+//   """   #      #""""  #   #  #   #    #    #   #  #   #
+//   #mmmmm "#mm"  #   #  "#m##  mm#mm  #   #  "#m"#
+//
+
+
 /// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -242,4 +258,5 @@ contract LendingPoolCore {
     function getTotalUserCounter() external view returns (uint256) {
         return s_totalUserCounter;
     }
+
 }
