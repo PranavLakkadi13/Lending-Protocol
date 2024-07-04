@@ -135,6 +135,8 @@ contract InitialTest is Test {
         assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 1000e18);
         lendTokens.approve(address(router), 1e21);
         vm.warp(block.timestamp + 1000);
+        uint256 a = token1.balanceOf(bob);
+        console.log("The balance of bob post the deposit : ", a);
         router.withdrawDepositedFunds(address(token1), 100e18, 0);
         assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 900e18);
         assert(lendTokens.balanceOf(address(bob)) == 900e18);
