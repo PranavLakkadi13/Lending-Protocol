@@ -41,6 +41,7 @@ contract Router is Ownable {
     Factory private immutable i_factory;
     mapping(address => address) private s_priceFeeds;
     LendTokens private immutable i_lendTokens;
+    uint256 private constant FLASHLOAN_FEE = 5;
     // uint256 public flashloanFee = 5;
 
     constructor (address factory, address[2] memory tokenAddress, address[2] memory priceFeeds, address lendToken) 
@@ -156,20 +157,20 @@ contract Router is Ownable {
             revert Router__ZeroAddress();
         }
 
-        uint256 flashloanFee = (amount * 5) / 10000;
 //Flash Loan Amount =
 //        1e18 = >    1000000000000000000
 //  Percent Mul= >        500000000000000  when the amount is 1e18 and % is 5
 //  Percent Mul =>       5000000000000000  when the amount is 1e18 and % is 50
 //             = >    1005000000000000000  the final to be paid back by the borrower when the fee is 0.5%
-        uint256 flashloanFee2 = PercentageMath.percentMul((amount),50);
+//              = >   1000500000000000000  the fee to be paid back when the fee is 5 i.e 0.05%
+        uint256 flashloanFee = PercentageMath.percentMul((amount),FLASHLOAN_FEE);
 
         LendingPoolCore(pool).FlashLoan(msg.sender,amount);
 
-        IFlashLoanSimpleReceiver(msg.sender).executeOperation(token, amount, flashloanFee2);
+        IFlashLoanSimpleReceiver(msg.sender).executeOperation(token, amount, flashloanFee);
 
-        SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount + flashloanFee2);
-        SafeERC20.safeTransfer(IERC20(token), address(pool), amount + flashloanFee2);
+        SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount + flashloanFee);
+        SafeERC20.safeTransfer(IERC20(token), address(pool), amount + flashloanFee);
     }
 
 }

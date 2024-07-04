@@ -92,4 +92,18 @@ contract FlashTest is Test {
         uint256 y = token1.balanceOf(address(lendingPoolCoreToken1));
         assert(x < y);
     }
+
+    function testfuzz_flashLoanWorks(uint256 amount) public {
+        amount = bound(amount, 1e18, 100e18);
+        vm.startPrank(bob);
+        token1.transfer(address(test), 1e18);
+        uint256 x = token1.balanceOf(address(lendingPoolCoreToken1));
+        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        router.depositLiquidity(address(token1), 1000e18);
+        assert(lendTokens.balanceOf(bob) == 1000e18);
+        test.flashLoan(amount);
+        vm.stopPrank();
+        uint256 y = token1.balanceOf(address(lendingPoolCoreToken1));
+        assert(x < y);
+    }
 }
