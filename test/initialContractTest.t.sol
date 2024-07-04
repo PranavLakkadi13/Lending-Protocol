@@ -124,6 +124,26 @@ contract InitialTest is Test {
         vm.stopPrank();
     }
 
+    function test_SimpleWithdrawPartialAmount() public {
+        vm.startPrank(bob);
+        uint256 x = token1.balanceOf(address(bob));
+        console.log("The initial balance of bob ", x);
+        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        router.depositLiquidity(address(token1), 1000e18);
+        uint256 z = x - token1.balanceOf(address(bob));
+        console.log("The balance of bob post the deposit : ", z);
+        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 1000e18);
+        lendTokens.approve(address(router), 1e21);
+        vm.warp(block.timestamp + 1000);
+        router.withdrawDepositedFunds(address(token1), 100e18, 0);
+        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 900e18);
+        assert(lendTokens.balanceOf(address(bob)) == 900e18);
+        vm.stopPrank();
+        uint256 y = token1.balanceOf(address(bob));
+        console.log("The balance of bob post the withdraw : ", y);
+        assert(x > y);
+    }
+
     function testFuzzMultiDepositAndWithdraw(uint256[] calldata amounts) public {
 
     }

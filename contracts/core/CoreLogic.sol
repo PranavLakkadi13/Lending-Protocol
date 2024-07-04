@@ -107,7 +107,7 @@ contract LendingPoolCore {
             deposit.trackedDeposits[deposit.depositCounter].timeOfDeposit = block.timestamp;
             deposit.totalDepositedAmount += amount;
             s_totalUserDeposits += amount;
-            s_totalUserDeposits++;
+            s_totalUserCounter++;
   }
 
 //        s_userDeposits[depositor] = deposit;
@@ -128,6 +128,7 @@ contract LendingPoolCore {
 
         emit CollateralDeposited(depositor, amount);
     }
+
 
     //////////////////////////////////
     ////  Withdraw Functions /////////
@@ -158,6 +159,10 @@ contract LendingPoolCore {
             deposit.totalDepositedAmount -= amount;
 //            deposit.depositsThatAreWithdrawn.push(depositId);
             s_totalUserDeposits -= amount;
+
+            SafeERC20.safeTransfer(i_underlyingAsset, user, amount);
+
+            emit SimpleWithdraw(user, amount, depositId);
         }
     }
 
