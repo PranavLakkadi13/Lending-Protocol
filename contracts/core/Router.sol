@@ -145,7 +145,7 @@ contract Router is Ownable {
 
     
     //////////////////////////////////
-    //// Flash Loan /////////////////
+    //// Flash Loan //////////////////
     //////////////////////////////////
 
     function flashLoan(address token, uint256 amount) external {
@@ -171,6 +171,23 @@ contract Router is Ownable {
 
         SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount + flashloanFee);
         SafeERC20.safeTransfer(IERC20(token), address(pool), amount + flashloanFee);
+    }
+
+
+    //////////////////////////////////
+    //// Getter Functions ////////////
+    //////////////////////////////////
+
+    function getFlashLoanFee() external pure returns (uint256) {
+        return FLASHLOAN_FEE;
+    }
+
+    function getLendTokens() external view returns (address) {
+        return address(i_lendTokens);
+    }
+
+    function getFactory() external view returns (address) {
+        return address(i_factory);
     }
 
 }
