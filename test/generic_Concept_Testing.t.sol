@@ -9,12 +9,14 @@ import { PercentageMath } from "../contracts/core/Library/PercentageLib.sol";
 contract generic_Concept_Testing is Test {
 
     function test_percentageMath() public {
-        uint256 x = PercentageMath.percentMul(7000, 10);
-        console.log("Percentage of 7000 with 10% is: ", x);
+        uint256 x = PercentageMath.percentMul(70, 25);
+        console.log("Percentage of 7000 with 100% is: ", x);
+        uint256 z = PercentageMath.percentMul(1000, 10);
+        console.log("The value : ", z);
     }
 
     function test_percentageMathDiv() public {
-        uint256 x = PercentageMath.percentDiv(1000, 1000);
+        uint256 x = PercentageMath.percentDiv(7000, 25);
         console.log("10% of 1000 is: ", x);
 //        assert(x == 100000);
     }

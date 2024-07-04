@@ -22,6 +22,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IFlashLoanSimpleReceiver } from "./interface/IFlashLoanReceiver.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { PercentageMath } from "./Library/PercentageLib.sol";
 
 contract Router is Ownable {
 
@@ -156,13 +157,19 @@ contract Router is Ownable {
         }
 
         uint256 flashloanFee = (amount * 5) / 10000;
+//Flash Loan Amount =
+//        1e18 = >    1000000000000000000
+//  Percent Mul= >        500000000000000  when the amount is 1e18 and % is 5
+//  Percent Mul =>       5000000000000000  when the amount is 1e18 and % is 50
+//             = >    1005000000000000000  the final to be paid back by the borrower when the fee is 0.5%
+        uint256 flashloanFee2 = PercentageMath.percentMul((amount),50);
 
         LendingPoolCore(pool).FlashLoan(msg.sender,amount);
 
-        IFlashLoanSimpleReceiver(msg.sender).executeOperation(token, amount, flashloanFee);
+        IFlashLoanSimpleReceiver(msg.sender).executeOperation(token, amount, flashloanFee2);
 
-        SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount + flashloanFee);
-        SafeERC20.safeTransfer(IERC20(token), address(pool), amount + flashloanFee);
+        SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount + flashloanFee2);
+        SafeERC20.safeTransfer(IERC20(token), address(pool), amount + flashloanFee2);
     }
 
 }
