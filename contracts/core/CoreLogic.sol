@@ -21,6 +21,7 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import { LendTokens } from "./LendTokens.sol";
+import { console } from "hardhat/console.sol";
 
 contract LendingPoolCore {
 
@@ -59,6 +60,7 @@ contract LendingPoolCore {
     mapping(address => TimeBasedDeposits ) private s_userDeposits;
 //    mapping(address => Deposits ) private s_userBorrowedAmount;
     mapping(address => uint256 ) private s_userCollateral;
+    uint256 private s_totaluserCollateral;
     uint256 private constant BORROWING_RATIO = 150;
     uint256 private constant LIQUIDATION_TRESHOLD = 110;
     uint256 private constant WITHDRAWAL_INTEREST = 3;
@@ -124,6 +126,7 @@ contract LendingPoolCore {
 
         unchecked {
             s_userCollateral[depositor] += amount;
+            s_totaluserCollateral += amount;
         }
 
         emit CollateralDeposited(depositor, amount);
@@ -149,10 +152,13 @@ contract LendingPoolCore {
             deposit.isWithdrawn[depositId] = true;
             s_totalUserDeposits -= amount;
             s_totalUserCounter--;
-//
-            SafeERC20.safeTransfer(i_underlyingAsset, user, amount);
 
-            emit SimpleWithdraw(user, amount, depositId);
+            uint256 amountWIthInterest = _calculateTheAmountOfTokensToReturn(amount, deposit.trackedDeposits[depositId].timeOfDeposit);
+            console.log("AMount WIth interest is ", amountWIthInterest);
+
+            SafeERC20.safeTransfer(i_underlyingAsset, user, amountWIthInterest);
+
+            emit SimpleWithdraw(user, amountWIthInterest, depositId);
         }
         else {
             deposit.trackedDeposits[depositId].amount -= amount;
@@ -160,9 +166,12 @@ contract LendingPoolCore {
 //            deposit.depositsThatAreWithdrawn.push(depositId);
             s_totalUserDeposits -= amount;
 
-            SafeERC20.safeTransfer(i_underlyingAsset, user, amount);
+            uint256 amountWIthInterest = _calculateTheAmountOfTokensToReturn(amount, deposit.trackedDeposits[depositId].timeOfDeposit);
+            console.log("AMount WIth interest is ", amountWIthInterest);
 
-            emit SimpleWithdraw(user, amount, depositId);
+            SafeERC20.safeTransfer(i_underlyingAsset, user, amountWIthInterest);
+
+            emit SimpleWithdraw(user, amountWIthInterest, depositId);
         }
     }
 
@@ -181,6 +190,27 @@ contract LendingPoolCore {
     // Getters for core logic ////////
     //////////////////////////////////
 
+    function _calculateTheAmountOfTokensToReturn(uint256 amount, uint256 timeOfDeposit) internal view returns (uint amountWithInterest) {
+        uint256 timePassed = block.timestamp - timeOfDeposit;
+        if(getTotalUserDeposits() == amount ){
+            amountWithInterest = amount + getTotalInterestAmount();
+            console.log("Hello");
+        }
+        else {
+            console.log("Hello");
+            uint256 totalUserDepositAmount = getTotalUserDeposits() - amount;
+            uint256 TotalAccuredInterestAmount =  getTotalInterestAmount();
+            uint256 getPercentAmount = totalUserDepositAmount / amount;
+            uint256 interestAMountPerSecond = TotalAccuredInterestAmount / 52 weeks ;
+            uint256 interestAmountTotal = interestAMountPerSecond * timePassed;
+            amountWithInterest = amount + (interestAmountTotal / getPercentAmount);
+        }
+    }
+
+
+    function getTotalInterestAmount() public view returns (uint) {
+        return i_underlyingAsset.balanceOf(address(this)) - (s_totalUserDeposits + s_totaluserCollateral);
+    }
 
     // will look into this 
     function getBorrowableAmountBasedOnUSDAmount(address user, uint collateralInUSD) external view returns (uint value) {
@@ -256,12 +286,16 @@ contract LendingPoolCore {
         return i_Router;
     }
 
-    function getTotalUserDeposits() external view returns (uint256) {
+    function getTotalUserDeposits() public view returns (uint256) {
         return s_totalUserDeposits;
     }
 
     function getTotalUserCounter() external view returns (uint256) {
         return s_totalUserCounter;
+    }
+
+    function getDepositInterestRate() external pure returns (uint256) {
+        return WITHDRAWAL_INTEREST;
     }
 
 }

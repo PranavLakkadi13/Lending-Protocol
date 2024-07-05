@@ -42,7 +42,6 @@ contract Router is Ownable {
     mapping(address => address) private s_priceFeeds;
     LendTokens private immutable i_lendTokens;
     uint256 private constant FLASHLOAN_FEE = 5;
-    // uint256 public flashloanFee = 5;
 
     constructor (address factory, address[2] memory tokenAddress, address[2] memory priceFeeds, address lendToken) 
     Ownable (msg.sender) {

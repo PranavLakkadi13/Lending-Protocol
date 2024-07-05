@@ -44,6 +44,7 @@ contract InitialTest is Test {
         factory.createPool(address(token2), address(priceFeedToken2), address(lendTokens));
         lendingPoolCoreToken1 = LendingPoolCore(factory.getPoolAddress(address(token1)));
         lendingPoolCoreToken2 = LendingPoolCore(factory.getPoolAddress(address(token2)));
+        token1.transfer(address(lendingPoolCoreToken1),1e20);
         vm.stopPrank();
     }
 
