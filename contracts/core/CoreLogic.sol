@@ -145,6 +145,8 @@ contract LendingPoolCore {
         }
         TimeBasedDeposits storage deposit = s_userDeposits[user];
 
+        uint256 totalBalance = s_totalUserDeposits;
+
         if (amount == deposit.trackedDeposits[depositId].amount) {
             deposit.trackedDeposits[depositId].amount -= amount;
             deposit.totalDepositedAmount -= amount;
@@ -153,8 +155,8 @@ contract LendingPoolCore {
             s_totalUserDeposits -= amount;
             s_totalUserCounter--;
 
-            uint256 amountWIthInterest = _calculateTheAmountOfTokensToReturn(amount, deposit.trackedDeposits[depositId].timeOfDeposit);
-            console.log("AMount WIth interest is ", amountWIthInterest);
+            uint256 amountWIthInterest = _calculateTheAmountOfTokensToReturn(amount, deposit.trackedDeposits[depositId].timeOfDeposit, totalBalance);
+            console.log("Amount With Interest is ", amountWIthInterest);
 
             SafeERC20.safeTransfer(i_underlyingAsset, user, amountWIthInterest);
 
@@ -163,11 +165,10 @@ contract LendingPoolCore {
         else {
             deposit.trackedDeposits[depositId].amount -= amount;
             deposit.totalDepositedAmount -= amount;
-//            deposit.depositsThatAreWithdrawn.push(depositId);
             s_totalUserDeposits -= amount;
 
-            uint256 amountWIthInterest = _calculateTheAmountOfTokensToReturn(amount, deposit.trackedDeposits[depositId].timeOfDeposit);
-            console.log("AMount WIth interest is ", amountWIthInterest);
+            uint256 amountWIthInterest = _calculateTheAmountOfTokensToReturn(amount, deposit.trackedDeposits[depositId].timeOfDeposit, totalBalance);
+            console.log("Amount With Interest is ", amountWIthInterest);
 
             SafeERC20.safeTransfer(i_underlyingAsset, user, amountWIthInterest);
 
@@ -190,17 +191,17 @@ contract LendingPoolCore {
     // Getters for core logic ////////
     //////////////////////////////////
 
-    function _calculateTheAmountOfTokensToReturn(uint256 amount, uint256 timeOfDeposit) internal view returns (uint amountWithInterest) {
-        uint256 timePassed = block.timestamp - timeOfDeposit;
-        if(getTotalUserDeposits() == amount ){
-            amountWithInterest = amount + getTotalInterestAmount();
+    function _calculateTheAmountOfTokensToReturn(uint256 amount, uint256 timeOfDeposit, uint256 BalanceOfContract) internal view returns (uint amountWithInterest) {
+        if(BalanceOfContract == amount ){
+            amountWithInterest = amount + getTotalInterestAmount(BalanceOfContract);
             console.log("Hello");
         }
         else {
             console.log("Hello");
-            uint256 totalUserDepositAmount = getTotalUserDeposits() - amount;
-            uint256 TotalAccuredInterestAmount =  getTotalInterestAmount();
-            uint256 getPercentAmount = totalUserDepositAmount / amount;
+            uint256 timePassed = block.timestamp - timeOfDeposit;
+            uint256 totalUserDepositAmount = BalanceOfContract - amount;
+            uint256 TotalAccuredInterestAmount =  getTotalInterestAmount(BalanceOfContract);
+            uint256 getPercentAmount = amount * 100 / totalUserDepositAmount ;
             uint256 interestAMountPerSecond = TotalAccuredInterestAmount / 52 weeks ;
             uint256 interestAmountTotal = interestAMountPerSecond * timePassed;
             amountWithInterest = amount + (interestAmountTotal / getPercentAmount);
@@ -208,8 +209,9 @@ contract LendingPoolCore {
     }
 
 
-    function getTotalInterestAmount() public view returns (uint) {
-        return i_underlyingAsset.balanceOf(address(this)) - (s_totalUserDeposits + s_totaluserCollateral);
+    function getTotalInterestAmount(uint256 BalAMount) public view returns (uint) {
+        return BalAMount - (s_totalUserDeposits + s_totaluserCollateral);
+        console.log(BalAMount);
     }
 
     // will look into this 
