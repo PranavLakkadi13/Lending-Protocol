@@ -44,7 +44,7 @@ contract InitialTest is Test {
         factory.createPool(address(token2), address(priceFeedToken2), address(lendTokens));
         lendingPoolCoreToken1 = LendingPoolCore(factory.getPoolAddress(address(token1)));
         lendingPoolCoreToken2 = LendingPoolCore(factory.getPoolAddress(address(token2)));
-        token1.transfer(address(lendingPoolCoreToken1),100e18);
+        token1.transfer(address(lendingPoolCoreToken1),1e18);
         vm.stopPrank();
     }
 
@@ -108,6 +108,9 @@ contract InitialTest is Test {
         assert(lendTokens.balanceOf(address(bob)) == 0);
         vm.stopPrank();
     }
+
+//1000000000000000000000
+//1000000000000000000000
 
     function testMultidepositandWithdraw() public {
         vm.startPrank(bob);

@@ -22,6 +22,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import { LendTokens } from "./LendTokens.sol";
 import { console } from "hardhat/console.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract LendingPoolCore {
 
@@ -145,7 +146,8 @@ contract LendingPoolCore {
         }
         TimeBasedDeposits storage deposit = s_userDeposits[user];
 
-        uint256 totalBalance = s_totalUserDeposits;
+        uint256 totalBalance = i_underlyingAsset.balanceOf(address(this));
+        console.log("Total Balance is ", totalBalance);
 
         if (amount == deposit.trackedDeposits[depositId].amount) {
             deposit.trackedDeposits[depositId].amount -= amount;
@@ -200,11 +202,17 @@ contract LendingPoolCore {
             console.log("Hello");
             uint256 timePassed = block.timestamp - timeOfDeposit;
             uint256 totalUserDepositAmount = BalanceOfContract - amount;
-            uint256 TotalAccuredInterestAmount =  getTotalInterestAmount(BalanceOfContract);
-            uint256 getPercentAmount = amount * 100 / totalUserDepositAmount ;
-            uint256 interestAMountPerSecond = TotalAccuredInterestAmount / 52 weeks ;
+            uint256 TotalAccruedInterestAmount =  getTotalInterestAmount(BalanceOfContract);
+            console.log("Total Accrued Interest Amount is ", TotalAccruedInterestAmount);
+
+            // The error is here
+            uint256 getPercentAmount = amount * 100 / totalUserDepositAmount;
+            console.log("Get Percent Amount is ", getPercentAmount);
+            uint256 interestAMountPerSecond = TotalAccruedInterestAmount / 52 weeks ;
+            console.log("Interest Amount Per Second is ", interestAMountPerSecond);
             uint256 interestAmountTotal = interestAMountPerSecond * timePassed;
-            amountWithInterest = amount + (interestAmountTotal / getPercentAmount);
+            console.log("Interest Amount Total is ", interestAmountTotal);
+            amountWithInterest = amount + (interestAmountTotal/getPercentAmount);
         }
     }
 
