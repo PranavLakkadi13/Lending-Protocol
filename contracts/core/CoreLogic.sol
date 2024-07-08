@@ -61,7 +61,7 @@ contract LendingPoolCore {
     mapping(address => TimeBasedDeposits ) private s_userDeposits;
 //    mapping(address => Deposits ) private s_userBorrowedAmount;
     mapping(address => uint256 ) private s_userCollateral;
-    uint256 private s_totaluserCollateral;
+    uint256 private s_TotalUserCollateral;
     uint256 private constant BORROWING_RATIO = 150;
     uint256 private constant LIQUIDATION_TRESHOLD = 110;
     uint256 private constant WITHDRAWAL_INTEREST = 3;
@@ -127,7 +127,7 @@ contract LendingPoolCore {
 
         unchecked {
             s_userCollateral[depositor] += amount;
-            s_totaluserCollateral += amount;
+            s_TotalUserCollateral += amount;
         }
 
         emit CollateralDeposited(depositor, amount);
@@ -195,32 +195,35 @@ contract LendingPoolCore {
 
     function _calculateTheAmountOfTokensToReturn(uint256 amount, uint256 timeOfDeposit, uint256 BalanceOfContract) internal view returns (uint amountWithInterest) {
         if(BalanceOfContract == amount ){
-            amountWithInterest = amount + getTotalInterestAmount(BalanceOfContract);
+            amountWithInterest = amount + getTotalInterestAmount(BalanceOfContract, amount);
             console.log("Hello");
         }
         else {
             console.log("Hello");
             uint256 timePassed = block.timestamp - timeOfDeposit;
             uint256 totalUserDepositAmount = BalanceOfContract - amount;
-            uint256 TotalAccruedInterestAmount =  getTotalInterestAmount(BalanceOfContract);
+            uint256 TotalAccruedInterestAmount =  getTotalInterestAmount(BalanceOfContract, amount);
             console.log("Total Accrued Interest Amount is ", TotalAccruedInterestAmount);
 
             // The error is here
-            uint256 getPercentAmount = amount * 100 / totalUserDepositAmount;
-            console.log("Get Percent Amount is ", getPercentAmount);
-            uint256 interestAMountPerSecond = TotalAccruedInterestAmount / 52 weeks ;
-            console.log("Interest Amount Per Second is ", interestAMountPerSecond);
-            uint256 interestAmountTotal = interestAMountPerSecond * timePassed;
-            console.log("Interest Amount Total is ", interestAmountTotal);
-            amountWithInterest = amount + (interestAmountTotal/getPercentAmount);
+            int256 getPercentAmount = int256(amount) * 100 / int256(totalUserDepositAmount);
+//            console.log("Get Percent Amount is ", getPercentAmount);
+            int256 interestAMountPerSecond = int256(TotalAccruedInterestAmount) / 52 weeks;
+//            console.log("Interest Amount Per Second is ", interestAMountPerSecond);
+            int256 interestAmountTotal = interestAMountPerSecond * int256(timePassed);
+
+            amountWithInterest = uint256(int256(amount) + (interestAmountTotal/getPercentAmount));
         }
     }
 
 
-    function getTotalInterestAmount(uint256 BalAMount) public view returns (uint) {
-        return BalAMount - (s_totalUserDeposits + s_totaluserCollateral);
-        console.log(BalAMount);
+    function getTotalInterestAmount(uint256 BalAMount, uint256 amount) public view returns (uint) {
+//        return BalAMount - (s_totalUserDeposits + s_TotalUserCollateral) - amount ;
+        return BalAMount - (s_totalUserDeposits + s_TotalUserCollateral);
+        // 1000000000318287037037
+        // 1000000000000317969067
     }
+
 
     // will look into this 
     function getBorrowableAmountBasedOnUSDAmount(address user, uint collateralInUSD) external view returns (uint value) {

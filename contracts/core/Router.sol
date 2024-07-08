@@ -189,4 +189,12 @@ contract Router is Ownable {
         return address(i_factory);
     }
 
+    function getPoolAddress(address token) public view returns (address) {
+        return i_factory.getPoolAddress(token);
+    }
+
+    function getDepositsInUSD(address token) public view returns (uint256) {
+        address pool = i_factory.getPoolAddress(token);
+        return LendingPoolCore(pool).getDepositValueInUSD(msg.sender);
+    }
 }

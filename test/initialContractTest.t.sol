@@ -157,4 +157,19 @@ contract InitialTest is Test {
     function testMultiDepositAndSemiWithdrawAsset(uint256[] calldata amounts) public {
 
     }
+
+    function testTotalDepositValueInUSD() public {
+        vm.startPrank(bob);
+        priceFeedToken1.updateAnswer(5362e8);
+        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        router.depositLiquidity(address(token1), 100e18);
+        router.depositLiquidity(address(token1), 1e18);
+        router.depositLiquidity(address(token1), 77e9);
+        router.depositLiquidity(address(token1), 10e12);
+        router.depositLiquidity(address(token1), 1012);
+        router.depositLiquidity(address(token1), 10178324);
+        uint256 x = router.getDepositsInUSD(address(token1));
+        vm.stopPrank();
+        console.log(x);
+    }
 }
