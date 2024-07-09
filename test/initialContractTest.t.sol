@@ -151,7 +151,16 @@ contract InitialTest is Test {
     }
 
     function testFuzzMultiDepositAndWithdraw(uint256[] calldata amounts) public {
-
+//        vm.startPrank(bob);
+//        for (uint i = 0; i < amounts.length; i++) {
+//            amounts[i] = bound(amounts[i], 1e1, 10e18);
+//            token1.approve(address(router), amounts[i]);
+//            router.depositLiquidity(address(token1), amounts[i]);
+//        }
+//        for (uint i = 0; i < amounts.length; i++) {
+//            router.withdrawDepositedFunds(address(token1), amounts[i], 0);
+//        }
+//        vm.stopPrank();
     }
 
     function testMultiDepositAndSemiWithdrawAsset(uint256[] calldata amounts) public {
@@ -183,6 +192,7 @@ contract InitialTest is Test {
     }
 
     function testDepositCollateralSingleAndValue(uint256 amount) public {
+        amount = bound(amount, 1e1, 1000e18);
         vm.startPrank(bob);
         token1.approve(address(router), amount);
         router.DepositCollateralSingle(address(token1), amount);
@@ -192,4 +202,6 @@ contract InitialTest is Test {
         console.log(x ," is the value of the Collateral in usd");
         vm.stopPrank();
     }
+
+
 }

@@ -72,7 +72,7 @@ contract FlashTest is Test {
 
     function test_flashLoanRevert() public {
         vm.startPrank(bob);
-        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        token1.approve(address(router), 1000e18);
         router.depositLiquidity(address(token1), 1000e18);
         assert(lendTokens.balanceOf(bob) == 1000e18);
         vm.expectRevert();
@@ -84,7 +84,7 @@ contract FlashTest is Test {
         vm.startPrank(bob);
         token1.transfer(address(test), 1e18);
         uint256 x = token1.balanceOf(address(lendingPoolCoreToken1));
-        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        token1.approve(address(router), 1000e18);
         router.depositLiquidity(address(token1), 1000e18);
         assert(lendTokens.balanceOf(bob) == 1000e18);
         test.flashLoan(1e18);
@@ -98,7 +98,7 @@ contract FlashTest is Test {
         vm.startPrank(bob);
         token1.transfer(address(test), 1e18);
         uint256 x = token1.balanceOf(address(lendingPoolCoreToken1));
-        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        token1.approve(address(router), 1000e18);
         router.depositLiquidity(address(token1), 1000e18);
         assert(lendTokens.balanceOf(bob) == 1000e18);
         test.flashLoan(amount);

@@ -33,15 +33,22 @@ contract Router is Ownable {
     // State Variables ///////////////
     //////////////////////////////////
 
-    struct PoolLendPosition {
+    struct PoolCollateralPosition {
         address pool;
         uint amount;
+        uint256 amountValueInUSD;
+    }
+
+    struct PoolCollateralData {
+        uint256 activePositions;
+        mapping(uint256 => PoolCollateralPosition) positions;
     }
 
     Factory private immutable i_factory;
     mapping(address => address) private s_priceFeeds;
     LendTokens private immutable i_lendTokens;
     uint256 private constant FLASHLOAN_FEE = 5;
+    mapping(address => PoolCollateralData) private s_poolCollateralData;
 
     constructor (address factory, address[2] memory tokenAddress, address[2] memory priceFeeds, address lendToken) 
     Ownable (msg.sender) {
@@ -106,6 +113,13 @@ contract Router is Ownable {
 
         SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), amount);
         LendingPoolCore(pool).depositCollateral(msg.sender, amount);
+
+        s_poolCollateralData[msg.sender].positions[s_poolCollateralData[msg.sender].activePositions] = PoolCollateralPosition(pool, amount, LendingPoolCore(pool).getCollateralValueInUSD(msg.sender));
+
+        unchecked {
+            s_poolCollateralData[msg.sender].activePositions++;
+        }
+
         SafeERC20.safeTransfer(IERC20(tokenToDeposit), pool, amount);
     }
 
