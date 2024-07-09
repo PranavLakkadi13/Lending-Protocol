@@ -85,9 +85,28 @@ contract Router is Ownable {
         if (pool == address(0)) {
             pool = i_factory.createPool(tokenToDeposit, s_priceFeeds[tokenToDeposit], address(i_lendTokens));
         }
-        
+
+        SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), amount);
         LendingPoolCore(pool).depositLiquidityAndMintTokens(msg.sender, amount);
+        SafeERC20.safeTransfer(IERC20(tokenToDeposit), pool, amount);
         mintLendTokens(msg.sender, amount);
+    }
+
+
+    function DepositCollateralSingle(address tokenToDeposit, uint256 amount) public {
+        if (tokenToDeposit == address(0) || amount == 0) {
+            revert Router__ZeroAddress();
+        }
+
+        address pool;
+        pool = Factory(i_factory).getPoolAddress(tokenToDeposit);
+        if (pool == address(0)) {
+            pool = i_factory.createPool(tokenToDeposit, s_priceFeeds[tokenToDeposit], address(i_lendTokens));
+        }
+
+        SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), amount);
+        LendingPoolCore(pool).depositCollateral(msg.sender, amount);
+        SafeERC20.safeTransfer(IERC20(tokenToDeposit), pool, amount);
     }
 
     //////////////////////////////////
@@ -196,5 +215,10 @@ contract Router is Ownable {
     function getDepositsInUSD(address token) public view returns (uint256) {
         address pool = i_factory.getPoolAddress(token);
         return LendingPoolCore(pool).getDepositValueInUSD(msg.sender);
+    }
+
+    function getCollateralValueInUSD(address token, address user) public view returns (uint256) {
+        address pool = i_factory.getPoolAddress(token);
+        return LendingPoolCore(pool).getCollateralValueInUSD(user);
     }
 }

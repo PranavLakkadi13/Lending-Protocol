@@ -101,7 +101,6 @@ contract LendingPoolCore {
 
     function depositLiquidityAndMintTokens(address depositor, uint256 amount) external onlyRouter {
          require(msg.sender == i_Router, "Only Router can call this function");
-        SafeERC20.safeTransferFrom(i_underlyingAsset, depositor, address(this), amount);
 
         TimeBasedDeposits storage deposit = s_userDeposits[depositor];
 
@@ -123,7 +122,6 @@ contract LendingPoolCore {
 
     function depositCollateral(address depositor, uint256 amount) external onlyRouter {
         require(msg.sender == i_Router, "Only Router can call this function");
-        SafeERC20.safeTransferFrom(i_underlyingAsset, depositor, address(this), amount);
 
         unchecked {
             s_userCollateral[depositor] += amount;
@@ -243,6 +241,19 @@ contract LendingPoolCore {
             uint8 temp = 18 - i_priceFeed.decimals();
             uint8 temp2 = 18 - i_underlyingAsset.decimals();
             return (getTotalDepositAmount(user) * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
+        }
+    }
+
+    function getCollateralValueInUSD(address user) public view returns (uint) {
+        (,int price,,,) = i_priceFeed.latestRoundData();
+
+        if (i_priceFeed.decimals() == 18) {
+            return (getCollateralAmount(user) * uint(price))/1e18;
+        }
+        else {
+            uint8 temp = 18 - i_priceFeed.decimals();
+            uint8 temp2 = 18 - i_underlyingAsset.decimals();
+            return (getCollateralAmount(user) * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
         }
     }
 

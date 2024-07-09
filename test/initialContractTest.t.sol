@@ -56,7 +56,7 @@ contract InitialTest is Test {
 
     function test_depositofAsset() public {
         vm.startPrank(bob);
-        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        token1.approve(address(router), 1000e18);
         uint256 x = token1.balanceOf(address(lendingPoolCoreToken1));
         router.depositLiquidity(address(token1), 1000e18);
         uint256 y = token1.balanceOf(address(lendingPoolCoreToken1));
@@ -72,7 +72,7 @@ contract InitialTest is Test {
 
     function testCollateralValue() external {
         vm.startPrank(bob);
-        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        token1.approve(address(router), 1000e18);
         router.depositLiquidity(address(token1), 1e18);
         vm.stopPrank();
         lendingPoolCoreToken1.getDepositValueInUSD(bob);
@@ -80,7 +80,7 @@ contract InitialTest is Test {
 
     function testCheckDepositOfToken2() external {
         vm.startPrank(bob);
-        token2.approve(address(lendingPoolCoreToken2), 1000e8);
+        token2.approve(address(router), 1000e8);
         router.depositLiquidity(address(token2), 17e8);
         // lendingPoolCoreToken2.depositLiquidityAndMintTokens(bob, 17e8);
         vm.stopPrank();
@@ -89,7 +89,7 @@ contract InitialTest is Test {
 
     function testDepositEventEmit() public {
         vm.startPrank(bob);
-        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        token1.approve(address(router), 1000e18);
         vm.expectEmit(true,true,false,true);
         emit DepositLiquidity(bob, 1000e18,1000e18, 0);
         router.depositLiquidity(address(token1), 1000e18);
@@ -98,7 +98,7 @@ contract InitialTest is Test {
 
     function testSimpleWithdraw() public {
         vm.startPrank(bob);
-        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        token1.approve(address(router), 1000e18);
         router.depositLiquidity(address(token1), 1000e18);
         assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 1000e18);
         lendTokens.approve(address(router), 1e21);
@@ -114,7 +114,7 @@ contract InitialTest is Test {
 
     function testMultidepositandWithdraw() public {
         vm.startPrank(bob);
-        token1.approve(address(lendingPoolCoreToken1), 3000e18);
+        token1.approve(address(router), 3000e18);
         router.depositLiquidity(address(token1), 1000e18);
         assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 1000e18);
         router.depositLiquidity(address(token1), 1000e18);
@@ -132,7 +132,7 @@ contract InitialTest is Test {
         vm.startPrank(bob);
         uint256 x = token1.balanceOf(address(bob));
         console.log("The initial balance of bob ", x);
-        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        token1.approve(address(router), 1000e18);
         router.depositLiquidity(address(token1), 1000e18);
         uint256 z = x - token1.balanceOf(address(bob));
         console.log("The balance of bob post the deposit : ", z);
@@ -161,7 +161,7 @@ contract InitialTest is Test {
     function testTotalDepositValueInUSD() public {
         vm.startPrank(bob);
         priceFeedToken1.updateAnswer(5362e8);
-        token1.approve(address(lendingPoolCoreToken1), 1000e18);
+        token1.approve(address(router), 1000e18);
         router.depositLiquidity(address(token1), 100e18);
         router.depositLiquidity(address(token1), 1e18);
         router.depositLiquidity(address(token1), 77e9);
@@ -171,5 +171,25 @@ contract InitialTest is Test {
         uint256 x = router.getDepositsInUSD(address(token1));
         vm.stopPrank();
         console.log(x);
+    }
+
+    function testDepositCollateralSingle() public {
+        vm.startPrank(bob);
+        token1.approve(address(router), 1000e18);
+        router.DepositCollateralSingle(address(token1), 1000e18);
+        assert(lendTokens.balanceOf(bob) == 0);
+        assert(lendingPoolCoreToken1.getCollateralAmount(bob) == 1000e18);
+        vm.stopPrank();
+    }
+
+    function testDepositCollateralSingleAndValue(uint256 amount) public {
+        vm.startPrank(bob);
+        token1.approve(address(router), amount);
+        router.DepositCollateralSingle(address(token1), amount);
+        assert(lendTokens.balanceOf(bob) == 0);
+        assert(lendingPoolCoreToken1.getCollateralAmount(bob) == amount);
+        uint256 x = router.getCollateralValueInUSD(address(token1), bob);
+        console.log(x ," is the value of the Collateral in usd");
+        vm.stopPrank();
     }
 }
