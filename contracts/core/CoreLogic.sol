@@ -99,6 +99,10 @@ contract LendingPoolCore {
     ////  Deposit Functions //////////
     //////////////////////////////////
 
+    /// @notice This function is used to deposit the liquidity
+    /// @param depositor address of the depositor
+    /// @param amount amount of tokens
+    /// @dev only the router contract can call this function
     function depositLiquidityAndMintTokens(address depositor, uint256 amount) external onlyRouter {
          require(msg.sender == i_Router, "Only Router can call this function");
 
@@ -229,8 +233,9 @@ contract LendingPoolCore {
         
     }
 
-    /// To see the collateral value in USD
+    /// To see the deposit value in USD
     /// @param user address of the user
+    /// @return the value of the deposit in USD
     function getDepositValueInUSD(address user) public view returns (uint) {
         (,int price,,,) = i_priceFeed.latestRoundData();
 
@@ -244,6 +249,9 @@ contract LendingPoolCore {
         }
     }
 
+    /// To see the collateral value in USD
+    /// @param user address of the user
+    /// @return value in USD
     function getCollateralValueInUSD(address user) public view returns (uint) {
         (,int price,,,) = i_priceFeed.latestRoundData();
 
@@ -261,6 +269,9 @@ contract LendingPoolCore {
     // FlashLoan  ////////////////////
     //////////////////////////////////
 
+    /// @notice This function is used to flash loan the amount of tokens
+    /// @param receiver address of the receiver
+    /// @param amount amount of tokens
     function FlashLoan(address receiver,uint amount) external onlyRouter {
         if (amount > i_underlyingAsset.balanceOf(address(this))) {
             revert CoreLogic__OutOfBalance();
@@ -274,10 +285,17 @@ contract LendingPoolCore {
     // Getters for state variables ///
     //////////////////////////////////
 
+    /// @notice This function is used to get the total deposit amount of the user
+    /// @param user address of the user
+    /// @return the total deposited amount
     function getTotalDepositAmount(address user) public view returns (uint256 depositedAmount) {
         return s_userDeposits[user].totalDepositedAmount;
     }
 
+    /// @notice This function is used to get the deposit amount of a particular depositId
+    /// @param user address of the user
+    /// @param depositId id of the deposit
+    /// @return the amount of the deposit
     function getIndividualDepositAmount(address user, uint256 depositId) public view returns (uint256) {
         return s_userDeposits[user].trackedDeposits[depositId].amount;
     }
@@ -286,6 +304,9 @@ contract LendingPoolCore {
 //        return s_userBorrowedAmount[user].amount;
 //    }
 
+    /// @notice This function is used to get the total collateral amount of the user
+    /// @param user address of the user
+    /// @return the total collateral amount
     function getCollateralAmount(address user) public view returns (uint) {
         return s_userCollateral[user];
     }
