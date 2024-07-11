@@ -111,10 +111,10 @@ contract Router is Ownable {
             pool = i_factory.createPool(tokenToDeposit, s_priceFeeds[tokenToDeposit], address(i_lendTokens));
         }
 
+        s_poolCollateralData[msg.sender].positions[s_poolCollateralData[msg.sender].activePositions] = PoolCollateralPosition(pool, amount, LendingPoolCore(pool).getValueInUSD(amount));
+
         SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), amount);
         LendingPoolCore(pool).depositCollateral(msg.sender, amount);
-
-        s_poolCollateralData[msg.sender].positions[s_poolCollateralData[msg.sender].activePositions] = PoolCollateralPosition(pool, amount, LendingPoolCore(pool).getCollateralValueInUSD(msg.sender));
 
         unchecked {
             s_poolCollateralData[msg.sender].activePositions++;

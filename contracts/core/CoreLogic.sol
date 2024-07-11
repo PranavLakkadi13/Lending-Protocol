@@ -237,31 +237,48 @@ contract LendingPoolCore {
     /// @param user address of the user
     /// @return the value of the deposit in USD
     function getDepositValueInUSD(address user) public view returns (uint) {
-        (,int price,,,) = i_priceFeed.latestRoundData();
-
-        if (i_priceFeed.decimals() == 18) {
-            return (getTotalDepositAmount(user) * uint(price))/1e18;
-        } 
-        else { 
-            uint8 temp = 18 - i_priceFeed.decimals();
-            uint8 temp2 = 18 - i_underlyingAsset.decimals();
-            return (getTotalDepositAmount(user) * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
-        }
+//        (,int price,,,) = i_priceFeed.latestRoundData();
+//
+//        if (i_priceFeed.decimals() == 18) {
+//            return (getTotalDepositAmount(user) * uint(price))/1e18;
+//        }
+//        else {
+//            uint8 temp = 18 - i_priceFeed.decimals();
+//            uint8 temp2 = 18 - i_underlyingAsset.decimals();
+//            return (getTotalDepositAmount(user) * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
+//        }
+        uint256 amount = getTotalDepositAmount(user);
+        return getValueInUSD(amount);
     }
 
     /// To see the collateral value in USD
     /// @param user address of the user
     /// @return value in USD
     function getCollateralValueInUSD(address user) public view returns (uint) {
+//        (,int price,,,) = i_priceFeed.latestRoundData();
+//
+//        if (i_priceFeed.decimals() == 18) {
+//            return (getCollateralAmount(user) * uint(price))/1e18;
+//        }
+//        else {
+//            uint8 temp = 18 - i_priceFeed.decimals();
+//            uint8 temp2 = 18 - i_underlyingAsset.decimals();
+//            return (getCollateralAmount(user) * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
+//        }
+        uint256 amount = getCollateralAmount(user);
+        return getValueInUSD(amount);
+    }
+
+    function getValueInUSD(uint amount) public view returns (uint) {
         (,int price,,,) = i_priceFeed.latestRoundData();
 
         if (i_priceFeed.decimals() == 18) {
-            return (getCollateralAmount(user) * uint(price))/1e18;
+            return (amount * uint(price))/1e18;
         }
         else {
             uint8 temp = 18 - i_priceFeed.decimals();
             uint8 temp2 = 18 - i_underlyingAsset.decimals();
-            return (getCollateralAmount(user) * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
+            return (amount * 10 ** temp2 * (uint(price) * (10 ** temp)))/ (10 ** 18);
         }
     }
 
@@ -288,7 +305,7 @@ contract LendingPoolCore {
     /// @notice This function is used to get the total deposit amount of the user
     /// @param user address of the user
     /// @return the total deposited amount
-    function getTotalDepositAmount(address user) public view returns (uint256 depositedAmount) {
+    function getTotalDepositAmount(address user) public view returns (uint256) {
         return s_userDeposits[user].totalDepositedAmount;
     }
 
