@@ -21,7 +21,8 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import { LendTokens } from "./LendTokens.sol";
-import { console } from "hardhat/console.sol";
+//import { console } from "hardhat/console.sol";
+import { console } from "forge-std/console.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract LendingPoolCore {
@@ -207,14 +208,20 @@ contract LendingPoolCore {
             uint256 TotalAccruedInterestAmount =  getTotalInterestAmount(BalanceOfContract, amount);
             console.log("Total Accrued Interest Amount is ", TotalAccruedInterestAmount);
 
-            // The error is here
-            int256 getPercentAmount = int256(amount) * 100 / int256(totalUserDepositAmount);
-//            console.log("Get Percent Amount is ", getPercentAmount);
-            int256 interestAMountPerSecond = int256(TotalAccruedInterestAmount) / 52 weeks;
-//            console.log("Interest Amount Per Second is ", interestAMountPerSecond);
-            int256 interestAmountTotal = interestAMountPerSecond * int256(timePassed);
+            // The error is here when the amount is small like dust amount
+            // To deal with dust amount we can use the dust value to calculate the interest on that amount as a separate deal
+            uint256 getPercentAmount = amount * 100 / totalUserDepositAmount;
+            if (getPercentAmount == 0) {
+                uint256 assumedInterest = amount - ((amount * 98) / 100);
+                amountWithInterest = amount + assumedInterest;
+                console.logUint(amountWithInterest);
+                return amountWithInterest;
+            }
 
-            amountWithInterest = uint256(int256(amount) + (interestAmountTotal/getPercentAmount));
+            uint256 interestAMountPerSecond = (TotalAccruedInterestAmount) / 52 weeks;
+            uint256 interestAmountTotal = interestAMountPerSecond * (timePassed);
+            amountWithInterest = amount + (interestAmountTotal/getPercentAmount);
+            return amountWithInterest;
         }
     }
 
