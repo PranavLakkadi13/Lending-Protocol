@@ -150,17 +150,22 @@ contract InitialTest is Test {
         assert(x > y);
     }
 
-    function testFuzzMultiDepositAndWithdraw(uint256[] calldata amounts) public {
-//        vm.startPrank(bob);
-//        for (uint i = 0; i < amounts.length; i++) {
-//            amounts[i] = bound(amounts[i], 1e1, 10e18);
-//            token1.approve(address(router), amounts[i]);
-//            router.depositLiquidity(address(token1), amounts[i]);
-//        }
-//        for (uint i = 0; i < amounts.length; i++) {
-//            router.withdrawDepositedFunds(address(token1), amounts[i], 0);
-//        }
-//        vm.stopPrank();
+    function testFuzzMultiDepositAndWithdraw(uint256 amount) public {
+        amount = bound(amount, 1e1, 1e17);
+        vm.startPrank(bob);
+        uint256 x = token1.balanceOf(address(bob));
+        console.log("The initial balance of bob ", x);
+        token1.approve(address(router), 1000e18);
+        router.depositLiquidity(address(token1), 1000e18);
+        uint256 z = x - token1.balanceOf(address(bob));
+        console.log("The balance of bob post the deposit : ", z);
+        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 1000e18);
+        lendTokens.approve(address(router), amount);
+        vm.warp(block.timestamp + 1000);
+        uint256 a = token1.balanceOf(bob);
+        console.log("The balance of bob post the deposit : ", a);
+        router.withdrawDepositedFunds(address(token1), amount, 0);
+        vm.stopPrank();
     }
 
     function testMultiDepositAndSemiWithdrawAsset(uint256[] calldata amounts) public {
