@@ -208,5 +208,29 @@ contract InitialTest is Test {
         vm.stopPrank();
     }
 
+    function testWithdrawUsingSameDepositId() public {
+        vm.startPrank(bob);
+        token1.approve(address(router), 1000e18);
+        router.depositLiquidity(address(token1), 100e18);
+        vm.warp(1000);
+        lendTokens.approve(address(router), 1e22);
+        router.withdrawDepositedFunds(address(token1), 100e18, 0);
+        vm.expectRevert();
+        router.withdrawDepositedFunds(address(token1), 100e18, 0);
+        vm.stopPrank();
+    }
 
+    function testWithdrawUsingSameDepositIdDifferentAmounts() public {
+//        amount1 = bound(amount1, 1e1, 100e18);
+//        amount2 = bound(amount2, amount1, 100e18);
+        vm.startPrank(bob);
+        token1.approve(address(router), 1000e18);
+        router.depositLiquidity(address(token1), 100e18);
+        vm.warp(1000);
+        lendTokens.approve(address(router), 1e22);
+        router.withdrawDepositedFunds(address(token1), 10e18, 0);
+        vm.expectRevert();
+        router.withdrawDepositedFunds(address(token1), 91e18, 0);
+        vm.stopPrank();
+    }
 }

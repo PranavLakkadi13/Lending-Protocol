@@ -34,6 +34,7 @@ contract LendingPoolCore {
     error CoreLogic__OnlyRouter();
     error CoreLogic__OutOfBalance();
     error CoreLogic__InvalidDepositId();
+    error CoreLogic__AlreadyWithdrawn();
 
     event DepositLiquidity(address indexed depositor, uint indexed amount, uint256 shares_minted, uint256 indexed depositCounter);
     event CollateralDeposited(address indexed depositor, uint indexed amount);
@@ -147,6 +148,9 @@ contract LendingPoolCore {
         if (s_userDeposits[user].depositCounter < depositId) {
             revert CoreLogic__InvalidDepositId();
         }
+        if (s_userDeposits[user].isWithdrawn[depositId]) {
+            revert CoreLogic__AlreadyWithdrawn();
+        }
         TimeBasedDeposits storage deposit = s_userDeposits[user];
 
         uint256 totalBalance = i_underlyingAsset.balanceOf(address(this));
@@ -168,6 +172,9 @@ contract LendingPoolCore {
             emit SimpleWithdraw(user, amountWIthInterest, depositId);
         }
         else {
+            if (amount > deposit.trackedDeposits[depositId].amount) {
+                revert CoreLogic__OutOfBalance();
+            }
             deposit.trackedDeposits[depositId].amount -= amount;
             deposit.totalDepositedAmount -= amount;
             s_totalUserDeposits -= amount;
@@ -217,8 +224,7 @@ contract LendingPoolCore {
             uint256 getPercentAmount = amount * 100 / totalUserDepositAmount;
             if (getPercentAmount == 0) {
                 uint256 assumedInterest = amount - ((amount * 98) / 100);
-                amountWithInterest = amount + assumedInterest;
-                console.logUint(amountWithInterest);
+                amountWithInterest = amount + (assumedInterest/365);
                 return amountWithInterest;
             }
 
