@@ -16,6 +16,7 @@ const PolygonScan_API_KEY = process.env.PolygonScan_API_KEY;
 const Etherscan_API_KEY = process.env.Etherscan_API_KEY;
 const Coinmarketcap_API_KEY = process.env.Coinmarketcap_API_KEY;
 const RPC_URL_Alchemy_MAINNET = process.env.RPC_URL_Alchemy_MAINNET;
+const RPC_URL_Dojima_Testnet = process.env.RPC_URL_Dojima_Testnet;
 
 const Private_Key_G = process.env.Private_Key_G;
 const RPC_URL_G = process.env.RPC_URL_G;
@@ -39,9 +40,15 @@ module.exports = {
     polygon: {
       url: RPC_URL_POLYGON,
       accounts: [Private_Key],
-      chainId: 80001,
+      chainId: 80002,
       blockConfirmations: 6,
     },
+    dojima : {
+      url: RPC_URL_Dojima_Testnet,
+      accounts: [Private_Key],
+      chainId: 184,
+      blockConfirmations: 6,
+    }
   },
   solidity: {
     compilers: [

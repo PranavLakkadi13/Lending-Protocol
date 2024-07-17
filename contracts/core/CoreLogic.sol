@@ -207,6 +207,10 @@ contract LendingPoolCore {
             uint256 totalUserDepositAmount = BalanceOfContract - amount;
             uint256 TotalAccruedInterestAmount =  getTotalInterestAmount(BalanceOfContract, amount);
             console.log("Total Accrued Interest Amount is ", TotalAccruedInterestAmount);
+            if (TotalAccruedInterestAmount == 0 ) {
+                amountWithInterest = amount;
+                return amountWithInterest;
+            }
 
             // The error is here when the amount is small like dust amount
             // To deal with dust amount we can use the dust value to calculate the interest on that amount as a separate deal
