@@ -2,23 +2,23 @@
 pragma solidity ^0.8.0;
 
 import {IFlashLoanSimpleReceiver} from "../contracts/core/interface/IFlashLoanReceiver.sol";
-import { Test, console } from "forge-std/Test.sol";
-import { Factory } from "../contracts/core/Factory.sol";
-import { Router } from "../contracts/core/Router.sol";
-import { LendingPoolCore } from "../contracts/core/CoreLogic.sol";
-import { LendTokens } from "../contracts/core/LendTokens.sol";
-import { Token1 } from "../contracts/Tokens_ERC20/Token1.sol";
-import { Token2 } from "../contracts/Tokens_ERC20/Token2.sol";
-import { PriceFeedToken1 } from "../contracts/Price_Feed/PriceFeedToken1.sol";
-import { PriceFeedToken2 } from "../contracts/Price_Feed/PriceFeedToken2.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Test, console} from "forge-std/Test.sol";
+import {Factory} from "../contracts/core/Factory.sol";
+import {Router} from "../contracts/core/Router.sol";
+import {LendingPoolCore} from "../contracts/core/CoreLogic.sol";
+import {LendTokens} from "../contracts/core/LendTokens.sol";
+import {Token1} from "../contracts/Tokens_ERC20/Token1.sol";
+import {Token2} from "../contracts/Tokens_ERC20/Token2.sol";
+import {PriceFeedToken1} from "../contracts/Price_Feed/PriceFeedToken1.sol";
+import {PriceFeedToken2} from "../contracts/Price_Feed/PriceFeedToken2.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract FlashLoanTest is IFlashLoanSimpleReceiver {
     address public immutable i_owner;
     IERC20 private immutable i_underlyingAsset;
     Router private immutable i_router;
 
-    constructor(address token,address router){
+    constructor(address token, address router) {
         i_owner = msg.sender;
         i_underlyingAsset = IERC20(token);
         i_router = Router(router);
@@ -33,7 +33,6 @@ contract FlashLoanTest is IFlashLoanSimpleReceiver {
         i_router.flashLoan(address(i_underlyingAsset), amount);
     }
 }
-
 
 contract FlashTest is Test {
     address public owner = makeAddr("owner");
@@ -51,15 +50,20 @@ contract FlashTest is Test {
     PriceFeedToken2 public priceFeedToken2;
     FlashLoanTest public test;
 
-    function setUp() public  {
+    function setUp() public {
         vm.startPrank(bob);
         factory = new Factory();
         token1 = new Token1();
         token2 = new Token2();
-        priceFeedToken1 = new PriceFeedToken1(8,3000e8);
-        priceFeedToken2 = new PriceFeedToken2(8,7e8);
+        priceFeedToken1 = new PriceFeedToken1(8, 3000e8);
+        priceFeedToken2 = new PriceFeedToken2(8, 7e8);
         lendTokens = new LendTokens();
-        router = new Router(address(factory), [address(token1), address(token2)], [address(priceFeedToken1), address(priceFeedToken2)], address(lendTokens));
+        router = new Router(
+            address(factory),
+            [address(token1), address(token2)],
+            [address(priceFeedToken1), address(priceFeedToken2)],
+            address(lendTokens)
+        );
         lendTokens.transferOwnership(address(router));
         factory.setRouter(address(router));
         factory.createPool(address(token1), address(priceFeedToken1), address(lendTokens));

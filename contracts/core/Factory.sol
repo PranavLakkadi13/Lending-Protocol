@@ -15,21 +15,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { LendingPoolCore } from "./CoreLogic.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { Router } from "./Router.sol";
+import {LendingPoolCore} from "./CoreLogic.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Router} from "./Router.sol";
 
 contract Factory is Ownable {
-
     error Factory__PoolExists();
     error Factory__ZeroAddress();
     error Factory__PoolCreationFailed();
 
     mapping(address => address) private getPool;
-    address private  s_Router;
+    address private s_Router;
     address[] public allPools;
 
-    event PoolCreated(address indexed token0, address pool, uint);
+    event PoolCreated(address indexed token0, address pool, uint256);
 
     constructor() Ownable(msg.sender) {}
 
@@ -39,11 +38,14 @@ contract Factory is Ownable {
         }
     }
 
-    function allPairsLength() external view returns (uint) {
+    function allPairsLength() external view returns (uint256) {
         return allPools.length;
     }
 
-    function createPool(address underlyingAsset, address pricefeedAddress, address lendToken) external returns (address pool) { 
+    function createPool(address underlyingAsset, address pricefeedAddress, address lendToken)
+        external
+        returns (address pool)
+    {
         if (underlyingAsset == address(0)) {
             revert Factory__ZeroAddress();
         }
@@ -51,15 +53,16 @@ contract Factory is Ownable {
             revert Factory__PoolExists();
         }
         bytes memory bytecode = type(LendingPoolCore).creationCode;
-        
-        bytes memory endOutput = abi.encodePacked(bytecode,abi.encode(underlyingAsset, pricefeedAddress, s_Router, lendToken));
-        
+
+        bytes memory endOutput =
+            abi.encodePacked(bytecode, abi.encode(underlyingAsset, pricefeedAddress, s_Router, lendToken));
+
         bytes32 salt = keccak256(abi.encodePacked(underlyingAsset, pricefeedAddress, s_Router, lendToken));
-        
+
         assembly {
             pool := create2(0, add(endOutput, 32), mload(endOutput), salt)
         }
-        
+
         if (pool == address(0)) {
             revert Factory__PoolCreationFailed();
         }

@@ -1,23 +1,24 @@
-// SPDX-License-Identifier: MIT 
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { Test, console } from "forge-std/Test.sol";
-import { Factory } from "../contracts/core/Factory.sol";
-import { Router } from "../contracts/core/Router.sol";
-import { LendingPoolCore } from "../contracts/core/CoreLogic.sol";
-import { LendTokens } from "../contracts/core/LendTokens.sol";
-import { Token1 } from "../contracts/Tokens_ERC20/Token1.sol";
-import { Token2 } from "../contracts/Tokens_ERC20/Token2.sol";
-import { PriceFeedToken1 } from "../contracts/Price_Feed/PriceFeedToken1.sol";
-import { PriceFeedToken2 } from "../contracts/Price_Feed/PriceFeedToken2.sol";
+import {Test, console} from "forge-std/Test.sol";
+import {Factory} from "../contracts/core/Factory.sol";
+import {Router} from "../contracts/core/Router.sol";
+import {LendingPoolCore} from "../contracts/core/CoreLogic.sol";
+import {LendTokens} from "../contracts/core/LendTokens.sol";
+import {Token1} from "../contracts/Tokens_ERC20/Token1.sol";
+import {Token2} from "../contracts/Tokens_ERC20/Token2.sol";
+import {PriceFeedToken1} from "../contracts/Price_Feed/PriceFeedToken1.sol";
+import {PriceFeedToken2} from "../contracts/Price_Feed/PriceFeedToken2.sol";
 
-
-contract InitialTest is Test { 
+contract InitialTest is Test {
     address public owner = makeAddr("owner");
     address public bob = makeAddr("bob");
     address public alice = makeAddr("alice");
 
-    event DepositLiquidity(address indexed depositor, uint indexed amount, uint256 shares_minted, uint256 indexed depositCounter);
+    event DepositLiquidity(
+        address indexed depositor, uint256 indexed amount, uint256 shares_minted, uint256 indexed depositCounter
+    );
 
     Factory public factory;
     Router public router;
@@ -29,22 +30,27 @@ contract InitialTest is Test {
     PriceFeedToken1 public priceFeedToken1;
     PriceFeedToken2 public priceFeedToken2;
 
-    function setUp() public  {
+    function setUp() public {
         vm.startPrank(bob);
         factory = new Factory();
         token1 = new Token1();
         token2 = new Token2();
-        priceFeedToken1 = new PriceFeedToken1(8,3000e8);
-        priceFeedToken2 = new PriceFeedToken2(8,7e8);
+        priceFeedToken1 = new PriceFeedToken1(8, 3000e8);
+        priceFeedToken2 = new PriceFeedToken2(8, 7e8);
         lendTokens = new LendTokens();
-        router = new Router(address(factory), [address(token1), address(token2)], [address(priceFeedToken1), address(priceFeedToken2)], address(lendTokens));
+        router = new Router(
+            address(factory),
+            [address(token1), address(token2)],
+            [address(priceFeedToken1), address(priceFeedToken2)],
+            address(lendTokens)
+        );
         lendTokens.transferOwnership(address(router));
         factory.setRouter(address(router));
         factory.createPool(address(token1), address(priceFeedToken1), address(lendTokens));
         factory.createPool(address(token2), address(priceFeedToken2), address(lendTokens));
         lendingPoolCoreToken1 = LendingPoolCore(factory.getPoolAddress(address(token1)));
         lendingPoolCoreToken2 = LendingPoolCore(factory.getPoolAddress(address(token2)));
-        token1.transfer(address(lendingPoolCoreToken1),1e18);
+        token1.transfer(address(lendingPoolCoreToken1), 1e18);
         vm.stopPrank();
     }
 
@@ -52,7 +58,7 @@ contract InitialTest is Test {
         console.log("Factory address: ", address(lendTokens));
         lendTokens.totalSupply();
         factory.getRouter();
-    }   
+    }
 
     function test_depositofAsset() public {
         vm.startPrank(bob);
@@ -66,7 +72,7 @@ contract InitialTest is Test {
         console.log(lendingPoolCoreToken1.getTotalDepositAmount(bob));
         assert(x != y);
 
-        uint balBOB = lendTokens.balanceOf(bob);
+        uint256 balBOB = lendTokens.balanceOf(bob);
         assert(balBOB == 1e21);
     }
 
@@ -90,8 +96,8 @@ contract InitialTest is Test {
     function testDepositEventEmit() public {
         vm.startPrank(bob);
         token1.approve(address(router), 1000e18);
-        vm.expectEmit(true,true,false,true);
-        emit DepositLiquidity(bob, 1000e18,1000e18, 0);
+        vm.expectEmit(true, true, false, true);
+        emit DepositLiquidity(bob, 1000e18, 1000e18, 0);
         router.depositLiquidity(address(token1), 1000e18);
         vm.stopPrank();
     }
@@ -109,8 +115,8 @@ contract InitialTest is Test {
         vm.stopPrank();
     }
 
-//1000000000000000000000
-//1000000000000000000000
+    //1000000000000000000000
+    //1000000000000000000000
 
     function testMultidepositandWithdraw() public {
         vm.startPrank(bob);
@@ -124,7 +130,7 @@ contract InitialTest is Test {
         vm.warp(block.timestamp + 1000);
         lendTokens.balanceOf(bob);
         router.withdrawTotalUserDeposit(address(token1));
-//        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 0);
+        //        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 0);
         vm.stopPrank();
     }
 
@@ -142,8 +148,8 @@ contract InitialTest is Test {
         uint256 a = token1.balanceOf(bob);
         console.log("The balance of bob post the deposit : ", a);
         router.withdrawDepositedFunds(address(token1), 99918, 0);
-//        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 900e18);
-//        assert(lendTokens.balanceOf(address(bob)) == 900e18);
+        //        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 900e18);
+        //        assert(lendTokens.balanceOf(address(bob)) == 900e18);
         vm.stopPrank();
         uint256 y = token1.balanceOf(address(bob));
         console.log("The balance of bob post the withdraw : ", y);
@@ -168,9 +174,7 @@ contract InitialTest is Test {
         vm.stopPrank();
     }
 
-    function testMultiDepositAndSemiWithdrawAsset(uint256[] calldata amounts) public {
-
-    }
+    function testMultiDepositAndSemiWithdrawAsset(uint256[] calldata amounts) public {}
 
     function testTotalDepositValueInUSD() public {
         vm.startPrank(bob);
@@ -204,7 +208,7 @@ contract InitialTest is Test {
         assert(lendTokens.balanceOf(bob) == 0);
         assert(lendingPoolCoreToken1.getCollateralAmount(bob) == amount);
         uint256 x = router.getCollateralValueInUSD(address(token1), bob);
-        console.log(x ," is the value of the Collateral in usd");
+        console.log(x, " is the value of the Collateral in usd");
         vm.stopPrank();
     }
 
@@ -221,8 +225,8 @@ contract InitialTest is Test {
     }
 
     function testWithdrawUsingSameDepositIdDifferentAmounts() public {
-//        amount1 = bound(amount1, 1e1, 100e18);
-//        amount2 = bound(amount2, amount1, 100e18);
+        //        amount1 = bound(amount1, 1e1, 100e18);
+        //        amount2 = bound(amount2, amount1, 100e18);
         vm.startPrank(bob);
         token1.approve(address(router), 1000e18);
         router.depositLiquidity(address(token1), 100e18);

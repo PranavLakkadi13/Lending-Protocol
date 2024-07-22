@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -12,12 +11,12 @@ interface IFlashLoanSimpleReceiver {
      * @param premium The fee of the flash-borrowed asset
      */
     function executeOperation(
-      address asset,
-      uint256 amount,
-      uint256 premium // The amount of fee to be paid
-    ) external ;
-  
+        address asset,
+        uint256 amount,
+        uint256 premium // The amount of fee to be paid
+    ) external;
+
     // function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);
-  
+
     // function POOL() external view returns (IPool);
-  }
+}
