@@ -58,16 +58,25 @@ contract FlashTest is Test {
         priceFeedToken1 = new PriceFeedToken1(8, 3000e8);
         priceFeedToken2 = new PriceFeedToken2(8, 7e8);
         lendTokens = new LendTokens();
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(token1);
+        tokens[1] = address(token2);
+        address[] memory priceFeeds = new address[](2);
+        priceFeeds[0] = address(priceFeedToken1);
+        priceFeeds[1] = address(priceFeedToken2);
         router = new Router(
             address(factory),
-            [address(token1), address(token2)],
-            [address(priceFeedToken1), address(priceFeedToken2)],
+            tokens,
+            priceFeeds,
             address(lendTokens)
         );
         lendTokens.transferOwnership(address(router));
         factory.setRouter(address(router));
+        vm.stopPrank();
+        vm.startPrank(address(router));
         factory.createPool(address(token1), address(priceFeedToken1), address(lendTokens));
         factory.createPool(address(token2), address(priceFeedToken2), address(lendTokens));
+        vm.stopPrank();
         lendingPoolCoreToken1 = LendingPoolCore(factory.getPoolAddress(address(token1)));
         lendingPoolCoreToken2 = LendingPoolCore(factory.getPoolAddress(address(token2)));
         test = new FlashLoanTest(address(token1), address(router));

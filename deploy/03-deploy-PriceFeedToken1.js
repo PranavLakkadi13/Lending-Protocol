@@ -21,4 +21,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
 };
 
-module.exports.tags = ["PriceFeedToken1"];
+module.exports.tags = ["PriceFeedToken1","all"];

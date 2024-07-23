@@ -22,4 +22,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   log("--------------------------------------------------");
 };
 
-module.exports.tags = ["PriceFeedToken2"];
+module.exports.tags = ["PriceFeedToken2","all"];

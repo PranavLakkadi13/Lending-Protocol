@@ -19,4 +19,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log("--------------------------------------------------");
 };
 
-module.exports.tags = ["LendTokens"];
+module.exports.tags = ["LendTokens","all"];

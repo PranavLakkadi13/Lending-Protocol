@@ -31,4 +31,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log("--------------------------------------------------");
 };
 
-module.exports.tags = ["Router"];
+module.exports.tags = ["Router","all"];

@@ -46,6 +46,7 @@ contract Factory is Ownable {
         external
         returns (address pool)
     {
+        require(msg.sender == s_Router, "Only Router can create pool");
         if (underlyingAsset == address(0)) {
             revert Factory__ZeroAddress();
         }

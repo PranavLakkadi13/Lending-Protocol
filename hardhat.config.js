@@ -3,7 +3,7 @@ require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-foundry");
 // require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
-require("@nomicfoundation/hardhat-verify");
+// require("@nomicfoundation/hardhat-verify");
 require("hardhat-deploy");
 require("solidity-coverage");
 require("hardhat-gas-reporter");

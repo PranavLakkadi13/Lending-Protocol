@@ -28,6 +28,7 @@ import "hardhat/console.sol";
 contract Router is Ownable {
     error Router__ZeroAddress();
     error Router__AlreadyWithdrawnAmount();
+    error Router__InvalidLength();
 
     //////////////////////////////////
     // State Variables ///////////////
@@ -50,7 +51,7 @@ contract Router is Ownable {
     uint256 private constant FLASHLOAN_FEE = 5;
     mapping(address => PoolCollateralData) private s_poolCollateralData;
 
-    constructor(address factory, address[2] memory tokenAddress, address[2] memory priceFeeds, address lendToken)
+    constructor(address factory, address[] memory tokenAddress, address[] memory priceFeeds, address lendToken)
         Ownable(msg.sender)
     {
         if (factory == address(0) || lendToken == address(0)) {
@@ -58,7 +59,12 @@ contract Router is Ownable {
         }
         i_factory = Factory(factory);
         i_lendTokens = LendTokens(lendToken);
-        for (uint256 i = 0; i < 2; i++) {
+        uint256 lenToken = tokenAddress.length;
+        uint256 lenPriceFeeds = priceFeeds.length;
+        if (lenToken != lenPriceFeeds) {
+            revert Router__InvalidLength();
+        }
+        for (uint256 i = 0; i < lenToken; i++) {
             if (tokenAddress[i] == address(0) || priceFeeds[i] == address(0)) {
                 revert Router__ZeroAddress();
             }
@@ -77,6 +83,13 @@ contract Router is Ownable {
         if (s_priceFeeds[underlyingToken] == address(0)) {
             s_priceFeeds[underlyingToken] = priceFeed;
         }
+    }
+
+    function CreatePool(address token) external onlyOwner {
+        if (token == address(0) || s_priceFeeds[token] == address(0)) {
+            revert Router__ZeroAddress();
+        }
+        i_factory.createPool(token, s_priceFeeds[token], address(i_lendTokens));
     }
 
     //////////////////////////////////
