@@ -3,6 +3,7 @@ require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-foundry");
 // require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
+require("@nomicfoundation/hardhat-verify");
 require("hardhat-deploy");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
@@ -65,22 +66,37 @@ module.exports = {
       default: 1,
     },
   },
-  etherscan: {
-    apiKey: Etherscan_API_KEY,
+  // etherscan: {
+  //   apiKey: Etherscan_API_KEY,
+  //   customChains: [
+  //     {
+  //       network: "sepolia",
+  //       chainId: 11155111,
+  //       urls: {
+  //         apiURL: "https://api-sepolia.etherscan.io/api",
+  //         browserURL: "https://sepolia.etherscan.io",
+  //       },
+  //     },
+  //   ],
+  // },
+  etherscan : {
+    apikey: {
+      dojima : "",
+    },
     customChains: [
       {
-        network: "sepolia",
-        chainId: 11155111,
-        urls: {
-          apiURL: "https://api-sepolia.etherscan.io/api",
-          browserURL: "https://sepolia.etherscan.io",
-        },
-      },
-    ],
+        network: "dojima",
+        chainId: 184,
+        urls : {
+          apiURL: "https://api-explorer-test.dojima.network/api",
+          browserURL: "https://explorer-test.dojima.network/",
+        }
+      }
+    ]
   },
-  polygonscan: {
-    apiKey: PolygonScan_API_KEY,
-  },
+  // polygonscan: {
+  //   apiKey: PolygonScan_API_KEY,
+  // },
   gasReporter: {
     enabled: true,
     outputFile: "gas-reporter.txt",

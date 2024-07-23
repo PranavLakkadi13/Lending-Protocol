@@ -23,6 +23,7 @@ import {IFlashLoanSimpleReceiver} from "./interface/IFlashLoanReceiver.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {PercentageMath} from "./Library/PercentageLib.sol";
+import "hardhat/console.sol";
 
 contract Router is Ownable {
     error Router__ZeroAddress();
@@ -97,15 +98,18 @@ contract Router is Ownable {
         //        LendingPoolCore(pool).borrow(msg.sender, amount);
         //        SafeERC20.safeTransfer(IERC20(tokenToBorrow), msg.sender, amount);
         DepositCollateralSingle(CollateralToken, amountCollateral);
-
+        uint256 CollateralValue = LendingPoolCore(CollateralToken).getValueInUSD(amountCollateral);
+        uint256 amountToBorrow = CollateralValue - ((CollateralValue * 70) / 100);
+        console.log("Amount to Borrow", amountToBorrow);
+        uint256 amountBorrowable = _getAmountBorrowable(tokenToBorrow, amount);
     }
 
-    function _getAmountToTransfer(address token, uint256 amount) internal {
+    function _getAmountBorrowable(address token, uint256 amount) internal returns (uint256 borrowableAmount) {
         address pool = i_factory.getPoolAddress(token);
         if (pool == address(0)) {
-            revert Router__ZeroAddress();
+            pool = i_factory.createPool(token, s_priceFeeds[token], address(i_lendTokens));
         }
-        LendingPoolCore(pool).TransferAmountToBeBorrowed(msg.sender, amount);
+        borrowableAmount = LendingPoolCore(pool).getValueInUSD(amount);
     }
     //////////////////////////////////
     //// Deposit Functions ///////////
