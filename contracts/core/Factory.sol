@@ -28,7 +28,7 @@ contract Factory is Ownable {
     address private s_Router;
     address[] public allPools;
 
-    event PoolCreated(address indexed token0, address pool, uint256);
+    event PoolCreated(address indexed token0, address indexed pool, uint256);
 
     constructor() Ownable(msg.sender) {}
 
@@ -56,9 +56,9 @@ contract Factory is Ownable {
         bytes memory bytecode = type(LendingPoolCore).creationCode;
 
         bytes memory endOutput =
-            abi.encodePacked(bytecode, abi.encode(underlyingAsset, pricefeedAddress, s_Router, lendToken));
+            abi.encode(bytecode, abi.encode(underlyingAsset, pricefeedAddress, s_Router, lendToken));
 
-        bytes32 salt = keccak256(abi.encodePacked(underlyingAsset, pricefeedAddress, s_Router, lendToken));
+        bytes32 salt = keccak256(abi.encode(underlyingAsset, pricefeedAddress, s_Router, lendToken));
 
         assembly {
             pool := create2(0, add(endOutput, 32), mload(endOutput), salt)

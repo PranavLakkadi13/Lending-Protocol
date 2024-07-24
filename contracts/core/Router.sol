@@ -89,7 +89,10 @@ contract Router is Ownable {
         if (token == address(0) || s_priceFeeds[token] == address(0)) {
             revert Router__ZeroAddress();
         }
-        i_factory.createPool(token, s_priceFeeds[token], address(i_lendTokens));
+        address pool = i_factory.createPool(token, s_priceFeeds[token], address(i_lendTokens));
+        if (pool == address(0)) {
+            revert Router__ZeroAddress();
+        }
     }
 
     //////////////////////////////////

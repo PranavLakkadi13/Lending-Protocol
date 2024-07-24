@@ -13,7 +13,7 @@ async function main() {
 
     const Token1BalanceCheck = await Token1.balanceOf(deployer.address);
     console.log("Balance of deployer:", Token1BalanceCheck.toString());
-    await Token1.transfer(Token2.address,1000);
+    await Token1.transfer(Token2.address,1);
 
     const Token2BalanceCheck = await Token2.balanceOf(deployer.address);
     console.log("Balance of deployer:", Token2BalanceCheck.toString());
@@ -46,7 +46,6 @@ async function main() {
     console.log("LendToken Contracts Loaded successfully!!!!")
     console.log("-------------------------------------------------------------------------------------------------");
     console.log("-------------------------------------------------------------------------------------------------");
-
 
 }
 

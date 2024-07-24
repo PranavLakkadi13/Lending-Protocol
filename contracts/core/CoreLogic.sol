@@ -33,6 +33,7 @@ contract LendingPoolCore {
     error CoreLogic__OutOfBalance();
     error CoreLogic__InvalidDepositId();
     error CoreLogic__AlreadyWithdrawn();
+    error CoreLogic__TranferCallFailedInFlashLoan();
 
     event DepositLiquidity(
         address indexed depositor, uint256 indexed amount, uint256 shares_minted, uint256 indexed depositCounter
@@ -313,7 +314,10 @@ contract LendingPoolCore {
             revert CoreLogic__OutOfBalance();
         }
         //        SafeERC20.safeTransfer(i_underlyingAsset, address(i_Router), amount);
-        i_underlyingAsset.transfer(receiver, amount);
+        bool success = i_underlyingAsset.transfer(receiver, amount);
+        if (!success) {
+            revert CoreLogic__TranferCallFailedInFlashLoan();
+        }
     }
 
     function TransferAmountToBeBorrowed(address receiver, uint256 amount) external onlyRouter {
@@ -321,7 +325,11 @@ contract LendingPoolCore {
         if (amount > i_underlyingAsset.balanceOf(address(this))) {
             revert CoreLogic__OutOfBalance();
         }
-        i_underlyingAsset.transfer(receiver, amount);
+        bool success = i_underlyingAsset.transfer(receiver, amount);
+        if (!success) {
+            revert CoreLogic__TranferCallFailedInFlashLoan();
+        }
+
     }
 
     //////////////////////////////////
