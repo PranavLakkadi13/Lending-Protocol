@@ -247,4 +247,9 @@ contract InitialTest is Test {
         router.withdrawDepositedFunds(address(token1), 91e18, 0);
         vm.stopPrank();
     }
+
+    function testLendingPoolStateVariables() public {
+        address pool = factory.getPoolAddress(address(token1));
+        LendingPoolCore(pool).getRouter();
+    }
 }

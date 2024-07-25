@@ -55,10 +55,9 @@ contract Factory is Ownable {
         }
         bytes memory bytecode = type(LendingPoolCore).creationCode;
 
-        bytes memory endOutput =
-            abi.encode(bytecode, abi.encode(underlyingAsset, pricefeedAddress, s_Router, lendToken));
+        bytes memory endOutput = abi.encodePacked(bytecode, abi.encode(underlyingAsset, pricefeedAddress, s_Router, lendToken));
 
-        bytes32 salt = keccak256(abi.encode(underlyingAsset, pricefeedAddress, s_Router, lendToken));
+        bytes32 salt = keccak256(abi.encodePacked(underlyingAsset, pricefeedAddress, s_Router, lendToken));
 
         assembly {
             pool := create2(0, add(endOutput, 32), mload(endOutput), salt)

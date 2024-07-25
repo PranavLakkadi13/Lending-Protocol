@@ -79,7 +79,7 @@ contract LendingPoolCore {
 
     modifier onlyRouter() {
         if (msg.sender == address(i_Router)) {
-            // revert CoreLogic__OnlyRouter();
+//             revert CoreLogic__OnlyRouter();
             _;
         }
     }
@@ -106,7 +106,7 @@ contract LendingPoolCore {
     /// @param depositor address of the depositor
     /// @param amount amount of tokens
     /// @dev only the router contract can call this function
-    function depositLiquidityAndMintTokens(address depositor, uint256 amount) external onlyRouter {
+    function depositLiquidityAndMintTokens(address depositor, uint256 amount)  external  onlyRouter {
         require(msg.sender == i_Router, "Only Router can call this function");
 
         TimeBasedDeposits storage deposit = s_userDeposits[depositor];
@@ -210,9 +210,7 @@ contract LendingPoolCore {
     {
         if (BalanceOfContract == amount) {
             amountWithInterest = amount + getTotalInterestAmount(BalanceOfContract, amount);
-            console.log("Hello");
         } else {
-            console.log("Hello");
             uint256 timePassed = block.timestamp - timeOfDeposit;
             uint256 totalUserDepositAmount = BalanceOfContract - amount;
             uint256 TotalAccruedInterestAmount = getTotalInterestAmount(BalanceOfContract, amount);
@@ -231,16 +229,16 @@ contract LendingPoolCore {
                 return amountWithInterest;
             }
 
-            uint256 interestAMountPerSecond = (TotalAccruedInterestAmount) / 52 weeks;
-            uint256 interestAmountTotal = interestAMountPerSecond * (timePassed);
+            uint256 interestAmountPerSecond = (TotalAccruedInterestAmount) / 52 weeks;
+            uint256 interestAmountTotal = interestAmountPerSecond * (timePassed);
             amountWithInterest = amount + (interestAmountTotal / getPercentAmount);
             return amountWithInterest;
         }
     }
 
-    function getTotalInterestAmount(uint256 BalAMount, uint256 amount) public view returns (uint256) {
+    function getTotalInterestAmount(uint256 BalAmount, uint256 amount) public view returns (uint256) {
         //        return BalAMount - (s_totalUserDeposits + s_TotalUserCollateral) - amount ;
-        return BalAMount - (s_totalUserDeposits + s_TotalUserCollateral);
+        return BalAmount - (s_totalUserDeposits + s_TotalUserCollateral);
         // 1000000000318287037037
         // 1000000000000317969067
     }
@@ -362,30 +360,42 @@ contract LendingPoolCore {
         return s_userCollateral[user];
     }
 
+    /// @notice This function is used to get the underlying asset address
+    /// @return the address of the underlying asset
     function assetAddress() external view returns (address) {
         return address(i_underlyingAsset);
     }
 
+    /// @notice This function is used to get the pool factory address
+    /// @return the address of the pool factory
     function poolFactoryAddress() external view returns (address) {
         return i_poolFactory;
     }
 
+    /// @notice This function is used to get the lending token address (shares)
+    /// @return the address of the lending token
     function lendingTokenAddress() external view returns (address) {
         return address(i_lendingToken);
     }
 
+    /// @notice This function is used to get the price feed address
+    /// @return the address of the price feed
     function priceFeedAddress() external view returns (address) {
         return address(i_priceFeed);
     }
 
+    /// @notice This function is used to get the router address
+    /// @return the address of the router
     function getRouter() external view returns (address) {
         return i_Router;
     }
 
+    /// @notice This function is used to get the total deposited amount (in the underlying token quantity)
     function getTotalUserDeposits() public view returns (uint256) {
         return s_totalUserDeposits;
     }
 
+    /// @notice This function is used to get the total user counter
     function getTotalUserCounter() external view returns (uint256) {
         return s_totalUserCounter;
     }
