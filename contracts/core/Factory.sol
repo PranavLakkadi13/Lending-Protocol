@@ -74,6 +74,9 @@ contract Factory is Ownable {
     }
 
     function getPoolAddress(address underlyingToken) external view returns (address) {
+        if (underlyingToken == address(0)) {
+            revert Factory__ZeroAddress();
+        }
         return getPool[underlyingToken];
     }
 

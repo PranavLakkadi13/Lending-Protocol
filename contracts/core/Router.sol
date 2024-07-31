@@ -29,6 +29,7 @@ contract Router is Ownable {
     error Router__ZeroAddress();
     error Router__AlreadyWithdrawnAmount();
     error Router__InvalidLength();
+    error  Router__ZeroAmount();
 
     //////////////////////////////////
     // State Variables ///////////////
@@ -99,11 +100,20 @@ contract Router is Ownable {
     //// Borrow Functions ////////////
     //////////////////////////////////
 
+    /// @notice This function is used to borrow Tokens from the Lending Pool by giving Collateral
+    /// @param tokenToBorrow The address of the token to borrow
+    /// @param CollateralToken The address of the token to be used as collateral
+    /// @param amount The amount of token to borrow
+    /// @param amountCollateral The amount of collateral to be deposited
     function borrow(address tokenToBorrow, address CollateralToken, uint256 amount, uint256 amountCollateral)
         external
     {
-        if (tokenToBorrow == address(0) || amount == 0) {
+        if (tokenToBorrow == address(0) || CollateralToken == address(0)) {
             revert Router__ZeroAddress();
+        }
+
+        if (amount == 0 || amountCollateral == 0) {
+            revert Router__ZeroAmount();
         }
 
         address pool = Factory(i_factory).getPoolAddress(tokenToBorrow);
@@ -131,9 +141,15 @@ contract Router is Ownable {
     //// Deposit Functions ///////////
     //////////////////////////////////
 
+    /// @notice This function is used to deposit liquidity in the Lending Pool
+    /// @param tokenToDeposit The address of the token to deposit
+    /// @param amount The amount of token to deposit
     function depositLiquidity(address tokenToDeposit, uint256 amount) external {
-        if (tokenToDeposit == address(0) || amount == 0) {
+        if (tokenToDeposit == address(0)) {
             revert Router__ZeroAddress();
+        }
+        if (amount == 0) {
+            revert Router__ZeroAmount();
         }
 
         address pool;
@@ -148,9 +164,15 @@ contract Router is Ownable {
         mintLendTokens(msg.sender, amount);
     }
 
+    /// @notice This function is used to deposit Collateral of a single asset in the Lending Pool
+    /// @param tokenToDeposit The address of the token to deposit
+    /// @param amount The amount of token to deposit
     function DepositCollateralSingle(address tokenToDeposit, uint256 amount) public {
-        if (tokenToDeposit == address(0) || amount == 0) {
+        if (tokenToDeposit == address(0)) {
             revert Router__ZeroAddress();
+        }
+        if (amount == 0) {
+            revert Router__ZeroAmount();
         }
 
         address pool;
@@ -176,9 +198,16 @@ contract Router is Ownable {
     ////  Withdraw Functions /////////
     //////////////////////////////////
 
+    /// @notice This function is used to withdraw deposited funds from the Lending Pool and earn any accured interest rate on the deposited amount
+    /// @param tokenToWithdraw The address of the token to withdraw
+    /// @param amount The amount of token to withdraw
+    /// @param depositId The id of the deposit
     function withdrawDepositedFunds(address tokenToWithdraw, uint256 amount, uint256 depositId) public {
-        if (tokenToWithdraw == address(0) || amount == 0) {
+        if (tokenToWithdraw == address(0)) {
             revert Router__ZeroAddress();
+        }
+        if (amount == 0) {
+            revert Router__ZeroAmount();
         }
 
         address pool = Factory(i_factory).getPoolAddress(tokenToWithdraw);
@@ -191,6 +220,8 @@ contract Router is Ownable {
         burnLendTokens(msg.sender, amount);
     }
 
+    /// @notice This function is used to withdraw multiple individual deposits of the same asset from the Lending Pool
+    /// @param tokenToWithdraw The address of the token to withdraw
     function withdrawTotalUserDeposit(address tokenToWithdraw) external {
         if (tokenToWithdraw == address(0) || i_factory.getPoolAddress(tokenToWithdraw) == address(0)) {
             revert Router__ZeroAddress();
@@ -206,6 +237,11 @@ contract Router is Ownable {
         burnLendTokens(msg.sender, amount);
     }
 
+    /// @notice This function is used to withdraw the total amount deposited by the user in the Lending Pool of a single asset
+    /// and earn any accured interest rate on the deposited amount
+    /// @param tokenToWithdraw The address of the token to withdraw
+    /// @param depositIds The ids of the deposits
+    /// @param depositAmounts The amounts of the deposits
     function withdrawMultipleDepositsSameAsset(
         address tokensToWithdraw,
         uint256[] calldata depositIds,
@@ -224,10 +260,18 @@ contract Router is Ownable {
     //// LEND Tokens Manager /////////
     //////////////////////////////////
 
+    /// @notice This function is used to mint LEND tokens
+    /// @param account The address of the account to mint the tokens to
+    /// @param amount The amount of tokens to mint
+    /// @dev only the router can call this function
     function mintLendTokens(address account, uint256 amount) internal {
         i_lendTokens.mint(account, amount);
     }
 
+    /// @notice This function is used to burn LEND tokens
+    /// @param account The address of the account to burn the tokens from
+    /// @param amount The amount of tokens to burn
+    /// @dev only the router can call this function
     function burnLendTokens(address account, uint256 amount) internal {
         i_lendTokens.burn(amount);
     }
@@ -236,9 +280,15 @@ contract Router is Ownable {
     //// Flash Loan //////////////////
     //////////////////////////////////
 
+    /// @notice This function is used to flash loan tokens from the Lending Pool
+    /// @param token The address of the token to flash loan
+    /// @param amount The amount of token to flash loan
     function flashLoan(address token, uint256 amount) external {
-        if (token == address(0) || amount == 0) {
+        if (token == address(0)) {
             revert Router__ZeroAddress();
+        }
+        if (amount == 0) {
+            revert Router__ZeroAmount();
         }
         address pool = Factory(i_factory).getPoolAddress(token);
         if (address(pool) == address(0)) {
@@ -265,27 +315,33 @@ contract Router is Ownable {
     //// Getter Functions ////////////
     //////////////////////////////////
 
+    /// @notice This function is used to get the flash loan fee
     function getFlashLoanFee() external pure returns (uint256) {
         return FLASHLOAN_FEE;
     }
 
+    /// @notice This function is used to get the Lend Tokens contract address
     function getLendTokens() external view returns (address) {
         return address(i_lendTokens);
     }
 
+    /// @notice This function is used to get the Factory contract address
     function getFactory() external view returns (address) {
         return address(i_factory);
     }
 
+    /// @notice This function is used to get the price feed address
     function getPoolAddress(address token) public view returns (address) {
         return i_factory.getPoolAddress(token);
     }
 
+    /// @notice This function is used to get the total deposit value in USD
     function getDepositsInUSD(address token) public view returns (uint256) {
         address pool = i_factory.getPoolAddress(token);
         return LendingPoolCore(pool).getDepositValueInUSD(msg.sender);
     }
 
+    /// @notice This function is used to get the total collateral value in USD
     function getCollateralValueInUSD(address token, address user) public view returns (uint256) {
         address pool = i_factory.getPoolAddress(token);
         return LendingPoolCore(pool).getCollateralValueInUSD(user);
