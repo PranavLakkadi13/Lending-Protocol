@@ -70,6 +70,14 @@ contract InitialTest is Test {
         factory.getRouter();
     }
 
+    function testIfTokensDecimalsIsSetCorrectly() public {
+        assert(token1.decimals() == 18);
+        assert(token2.decimals() == 8);
+        assert(lendTokens.decimals() == 18);
+        assert(priceFeedToken1.decimals() == 8);
+        assert(priceFeedToken2.decimals() == 8);
+    }
+
     function test_depositofAsset() public {
         vm.startPrank(bob);
         token1.approve(address(router), 1000e18);
@@ -98,9 +106,10 @@ contract InitialTest is Test {
         vm.startPrank(bob);
         token2.approve(address(router), 1000e8);
         router.depositLiquidity(address(token2), 17e8);
-        // lendingPoolCoreToken2.depositLiquidityAndMintTokens(bob, 17e8);
+         lendingPoolCoreToken2.depositLiquidityAndMintTokens(bob, 17e8);
         vm.stopPrank();
         lendingPoolCoreToken2.getDepositValueInUSD(bob);
+        assert(lendTokens.balanceOf(bob) == 17e8);
     }
 
     function testDepositEventEmit() public {
@@ -140,7 +149,7 @@ contract InitialTest is Test {
         vm.warp(block.timestamp + 1000);
         lendTokens.balanceOf(bob);
         router.withdrawTotalUserDeposit(address(token1));
-        //        assert(lendingPoolCoreToken1.getDepositAmount(bob) == 0);
+        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 0);
         vm.stopPrank();
     }
 
@@ -158,8 +167,8 @@ contract InitialTest is Test {
         uint256 a = token1.balanceOf(bob);
         console.log("The balance of bob post the deposit : ", a);
         router.withdrawDepositedFunds(address(token1), 99918, 0);
-        //        assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 900e18);
-        //        assert(lendTokens.balanceOf(address(bob)) == 900e18);
+//                  assert(lendingPoolCoreToken1.getTotalDepositAmount(bob) == 900e18);
+//         assert(lendTokens.balanceOf(address(bob)) == 900e18);
         vm.stopPrank();
         uint256 y = token1.balanceOf(address(bob));
         console.log("The balance of bob post the withdraw : ", y);

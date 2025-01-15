@@ -42,8 +42,15 @@ contract Router is Ownable {
     }
 
     struct PoolCollateralData {
-        uint256 activePositions;
+        uint256 totalPositions;
+        uint256[] activePositions;
         mapping(uint256 => PoolCollateralPosition) positions;
+        uint256 totalCollateralValueInUSD;
+    }
+
+    struct BorrowData {
+        address token;
+        uint256 amount;
     }
 
     Factory private immutable i_factory;
@@ -121,8 +128,8 @@ contract Router is Ownable {
             revert Router__ZeroAddress();
         }
 
-        //        LendingPoolCore(pool).borrow(msg.sender, amount);
-        //        SafeERC20.safeTransfer(IERC20(tokenToBorrow), msg.sender, amount);
+//                LendingPoolCore(pool).borrow(msg.sender, amount);
+//                SafeERC20.safeTransfer(IERC20(tokenToBorrow), msg.sender, amount);
         DepositCollateralSingle(CollateralToken, amountCollateral);
         uint256 CollateralValue = LendingPoolCore(CollateralToken).getValueInUSD(amountCollateral);
         uint256 amountToBorrow = CollateralValue - ((CollateralValue * 70) / 100);
@@ -181,14 +188,16 @@ contract Router is Ownable {
             pool = i_factory.createPool(tokenToDeposit, s_priceFeeds[tokenToDeposit], address(i_lendTokens));
         }
 
-        s_poolCollateralData[msg.sender].positions[s_poolCollateralData[msg.sender].activePositions] =
+        s_poolCollateralData[msg.sender].positions[s_poolCollateralData[msg.sender].totalPositions] =
             PoolCollateralPosition(pool, amount, LendingPoolCore(pool).getValueInUSD(amount));
 
         SafeERC20.safeTransferFrom(IERC20(tokenToDeposit), msg.sender, address(this), amount);
         LendingPoolCore(pool).depositCollateral(msg.sender, amount);
 
         unchecked {
-            s_poolCollateralData[msg.sender].activePositions++;
+            s_poolCollateralData[msg.sender].totalPositions++;
+            s_poolCollateralData[msg.sender].totalCollateralValueInUSD += LendingPoolCore(pool).getValueInUSD(amount);
+            s_poolCollateralData[msg.sender].activePositions.push(s_poolCollateralData[msg.sender].totalPositions);
         }
 
         SafeERC20.safeTransfer(IERC20(tokenToDeposit), pool, amount);
@@ -239,7 +248,6 @@ contract Router is Ownable {
 
     /// @notice This function is used to withdraw the total amount deposited by the user in the Lending Pool of a single asset
     /// and earn any accured interest rate on the deposited amount
-    /// @param tokenToWithdraw The address of the token to withdraw
     /// @param depositIds The ids of the deposits
     /// @param depositAmounts The amounts of the deposits
     function withdrawMultipleDepositsSameAsset(
